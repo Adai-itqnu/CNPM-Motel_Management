@@ -1,0 +1,40 @@
+.welcome-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.welcome-box {
+  background: white;
+  padding: 60px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  max-width: 500px;
+}
+
+.welcome-box h1 {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.welcome-box p {
+  font-size: 1.2rem;
+  color: #666;
+  margin: 15px 0;
+}
+
+.welcome-box strong {
+  color: #667eea;
+  font-weight: 700;
+}
+
+.success {
+  color: #22c55e;
+  font-weight: 600;
+  font-size: 1.3rem !important;
+  margin-top: 30px !important;
+}

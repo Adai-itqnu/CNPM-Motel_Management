@@ -1,0 +1,54 @@
+<div class="register-container">
+    <div class="register-box">
+        <h2>Đăng Ký</h2>
+
+        <form (ngSubmit)="onRegister()">
+            <div class="form-group">
+                <label for="username">Tên đăng nhập *</label>
+                <input type="text" id="username" [(ngModel)]="username" name="username" placeholder="Nhập tên đăng nhập"
+                    required />
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email *</label>
+                <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="Nhập email" required />
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">Họ và tên *</label>
+                <input type="text" id="fullName" [(ngModel)]="fullName" name="fullName" placeholder="Nhập họ và tên"
+                    required />
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Số điện thoại</label>
+                <input type="tel" id="phone" [(ngModel)]="phone" name="phone" placeholder="Nhập số điện thoại" />
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mật khẩu *</label>
+                <input type="password" id="password" [(ngModel)]="password" name="password"
+                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword">Xác nhận mật khẩu *</label>
+                <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword"
+                    placeholder="Nhập lại mật khẩu" required />
+            </div>
+
+            <button type="submit" [disabled]="loading">
+                {{ loading ? 'Đang đăng ký...' : 'Đăng ký' }}
+            </button>
+
+            <div class="message" *ngIf="message"
+                [class.error]="message.includes('thất bại') || message.includes('không') || message.includes('đã tồn tại')">
+                {{ message }}
+            </div>
+        </form>
+
+        <div class="login-link">
+            Đã có tài khoản? <a routerLink="/login">Đăng nhập ngay</a>
+        </div>
+    </div>
+</div>
