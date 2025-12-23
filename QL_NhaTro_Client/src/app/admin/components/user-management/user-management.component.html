@@ -1,4 +1,115 @@
 <div class="user-management">
+    <!-- Header -->
+  <div class="header">
     <h1>Quản Lý Người Dùng</h1>
-    <!-- Danh sách người dùng, khóa/mở tài khoản -->
+  </div>
+
+  <!-- Tìm kiếm -->
+  <div class="search-section">
+    <input 
+      type="text" 
+      [(ngModel)]="searchText" 
+      placeholder="Tìm kiếm theo tên, email..."
+      (keyup.enter)="onSearch()"
+      class="search-input"
+    />
+    <button (click)="onSearch()" class="btn-search">
+      🔍 Tìm kiếm
+    </button>
+  </div>
+
+  <!-- Thông báo -->
+  <div *ngIf="message" class="message">
+    {{ message }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Bảng danh sách -->
+  <div *ngIf="!loading" class="table-container">
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Tên đăng nhập</th>
+          <th>Họ tên</th>
+          <th>Email</th>
+          <th>Số điện thoại</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th>Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.username }}</td>
+          <td>{{ user.fullName }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.phone || 'Chưa có' }}</td>
+          <td>
+            <span class="badge" [ngClass]="getRoleBadge(user.role)">
+              {{ getRoleText(user.role) }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="getStatusBadge(user.isActive)">
+              {{ getStatusText(user.isActive) }}
+            </span>
+          </td>
+          <td>{{ formatDate(user.createdAt) }}</td>
+          <td>
+            <button 
+              *ngIf="user.role !== 'Admin'"
+              class="btn-toggle"
+              [class.btn-lock]="user.isActive"
+              [class.btn-unlock]="!user.isActive"
+              (click)="toggleStatus(user)"
+            >
+              {{ user.isActive ? '🔒 Khóa' : '🔓 Mở' }}
+            </button>
+            <span *ngIf="user.role === 'Admin'" class="no-action">
+              -
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty state -->
+    <div *ngIf="users.length === 0" class="empty">
+      <p>Không tìm thấy người dùng nào</p>
+    </div>
+  </div>
+
+  <!-- Phân trang -->
+  <div *ngIf="totalPages > 1" class="pagination">
+    <button 
+      [disabled]="currentPage === 1" 
+      (click)="changePage(currentPage - 1)"
+      class="btn-page"
+    >
+      ← Trước
+    </button>
+
+    <span class="page-info">
+      Trang {{ currentPage }} / {{ totalPages }}
+    </span>
+
+    <button 
+      [disabled]="currentPage === totalPages" 
+      (click)="changePage(currentPage + 1)"
+      class="btn-page"
+    >
+      Sau →
+    </button>
+  </div>
+
+  <!-- Tổng số -->
+  <div class="footer-info">
+    <p>Tổng số: {{ total }} người dùng</p>
+  </div>
 </div>
