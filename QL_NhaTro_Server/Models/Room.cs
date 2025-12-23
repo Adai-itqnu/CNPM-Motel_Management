@@ -46,11 +46,11 @@ namespace QL_NhaTro_Server.Models
 
         public int Floor { get; set; } = 1;
 
+        [MaxLength(50)]
+        public string? CurrentUserId { get; set; }
+
         [Required]
         public RoomStatus Status { get; set; } = RoomStatus.Available;
-
-        [MaxLength(50)]
-        public string? CurrentTenantId { get; set; }
 
         [MaxLength(50)]
         public string? CurrentContractId { get; set; }
@@ -60,8 +60,8 @@ namespace QL_NhaTro_Server.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         // Navigation properties
-        [ForeignKey("CurrentTenantId")]
-        public virtual User? CurrentTenant { get; set; }
+        [ForeignKey("CurrentUserId")]
+        public virtual User? CurrentUser { get; set; }
 
         public virtual ICollection<RoomAmenity> Amenities { get; set; } = new List<RoomAmenity>();
         public virtual ICollection<RoomImage> Images { get; set; } = new List<RoomImage>();

@@ -1,0 +1,66 @@
+
+<!-- Booking Modal -->
+<div class="modal-overlay" *ngIf="showBookingModal" (click)="closeBookingModal()">
+  <div class="modal-content booking-modal" (click)="$event.stopPropagation()">
+    <button class="btn-close" (click)="closeBookingModal()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    
+    <div class="booking-modal-body" *ngIf="selectedRoom">
+      <h2>Đặt cọc phòng {{ selectedRoom.name }}</h2>
+      <p class="booking-subtitle">Điền thông tin liên hệ để chủ trọ có thể liên hệ với bạn</p>
+      
+      <form class="booking-form">
+        <div class="form-group">
+          <label>Số điện thoại <span class="required">*</span></label>
+          <input 
+            type="tel" 
+            [(ngModel)]="bookingForm.contactPhone" 
+            name="contactPhone"
+            placeholder="Nhập số điện thoại"
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label>Email <span class="required">*</span></label>
+          <input 
+            type="email" 
+            [(ngModel)]="bookingForm.contactEmail" 
+            name="contactEmail"
+            placeholder="Nhập email"
+            required
+          >
+        </div>
+        
+        <div class="form-group">
+          <label>Ghi chú</label>
+          <textarea 
+            [(ngModel)]="bookingForm.notes" 
+            name="notes"
+            rows="3"
+            placeholder="Thời gian thuê mong muốn, yêu cầu khác..."
+          ></textarea>
+        </div>
+        
+        <div class="payment-info">
+          <div class="payment-method">
+            <img src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR.png" alt="VNPAY" height="30">
+            <span>Thanh toán qua VNPAY</span>
+          </div>
+          <div class="deposit-amount">
+            <span>Số tiền đặt cọc:</span>
+            <strong>{{ formatPrice(selectedRoom.depositAmount || selectedRoom.price) }}</strong>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-book" (click)="submitBooking()">Xác nhận & Thanh toán</button>
+          <button type="button" class="btn-contact" (click)="closeBookingModal()">Hủy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

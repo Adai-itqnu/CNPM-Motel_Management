@@ -28,7 +28,8 @@ export class HttpService {
     email: string,
     password: string,
     fullName: string,
-    phone?: string
+    phone?: string,
+    idCard?: string
   ): Observable<any> {
     const url = `${this.REST_API_SERVER}/Auth/register`;
     return this.http.post<any>(url, {
@@ -36,7 +37,8 @@ export class HttpService {
       email,
       password,
       fullName,
-      phone
+      phone,
+      idCard
     }, this.httpOptions);
   }
 

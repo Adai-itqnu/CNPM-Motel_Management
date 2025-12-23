@@ -23,7 +23,7 @@ namespace QL_NhaTro_Server.Models
 
         [Required]
         [MaxLength(50)]
-        public string TenantId { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
 
         [Required]
         [Column(TypeName = "date")]
@@ -58,8 +58,8 @@ namespace QL_NhaTro_Server.Models
         [ForeignKey("RoomId")]
         public virtual Room Room { get; set; } = null!;
 
-        [ForeignKey("TenantId")]
-        public virtual User Tenant { get; set; } = null!;
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
 
         public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
     }

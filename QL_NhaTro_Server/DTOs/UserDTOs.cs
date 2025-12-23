@@ -25,6 +25,8 @@ namespace QL_NhaTro_Server.DTOs
         [Phone]
         public string? Phone { get; set; }
 
+        public string? Address { get; set; }
+
         public string? IdCard { get; set; }
     }
 
@@ -42,12 +44,16 @@ namespace QL_NhaTro_Server.DTOs
         [MaxLength(200)]
         public string? FullName { get; set; }
 
+        [EmailAddress]
+        [MaxLength(150)]
+        public string? Email { get; set; }
+
         [Phone]
         public string? Phone { get; set; }
 
         public string? IdCard { get; set; }
 
-        public string? AvatarUrl { get; set; }
+        public string? Address { get; set; }
     }
 
     public class ChangePasswordDto

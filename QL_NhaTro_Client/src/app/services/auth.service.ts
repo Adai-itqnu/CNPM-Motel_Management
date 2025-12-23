@@ -31,9 +31,10 @@ export class AuthService {
     email: string,
     password: string,
     fullName: string,
-    phone?: string
+    phone?: string,
+    idCard?: string
   ) {
-    return this.http.register(username, email, password, fullName, phone);
+    return this.http.register(username, email, password, fullName, phone, idCard);
   }
 
   logout(): void {
@@ -50,11 +51,19 @@ export class AuthService {
   }
 
   isAdmin(): boolean {
-    return this.getUser()?.role === 'admin';
+    const role = this.getUser()?.role?.toLowerCase();
+    return role === 'admin';
   }
 
+  isUser(): boolean {
+    const role = this.getUser()?.role?.toLowerCase();
+    return role === 'user';
+  }
+
+
+  // Deprecated: Use isUser() instead
   isTenant(): boolean {
-    return this.getUser()?.role === 'tenant';
+    return this.isUser();
   }
 
   private setSession(res: LoginResponse) {

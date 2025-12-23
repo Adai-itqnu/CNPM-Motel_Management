@@ -100,7 +100,7 @@ export class RoomService {
       // Don't set Content-Type here, let the browser set it with the correct boundary
     });
 
-    return this.http.post(`${this.REST_API_SERVER}/rooms/${roomId}/upload-image`, 
+    return this.http.post(`${this.REST_API_SERVER}/rooms/${roomId}/images`, 
       formData,
       { headers }
     );

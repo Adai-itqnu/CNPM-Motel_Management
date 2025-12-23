@@ -3,8 +3,11 @@ export interface Booking {
   roomId: string;
   userId: string;
   checkInDate: Date;
+  startDate?: Date;
+  endDate?: Date;
   message?: string;
   depositAmount: number;
+
   depositStatus: 'pending' | 'paid' | 'failed' | 'refunded';
   depositPaidAt?: Date;
   paymentMethod: string;

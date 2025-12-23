@@ -1,54 +1,215 @@
-<div class="register-container">
-    <div class="register-box">
-        <h2>Đăng Ký</h2>
+<div class="register-wrapper">
+  <!-- Background -->
+  <div class="background-overlay"></div>
 
-        <form (ngSubmit)="onRegister()">
+  <!-- Register Card -->
+  <div class="register-card">
+    
+    <!-- Left Side - Branding -->
+    <div class="branding-section">
+      <div class="branding-content">
+        <div class="header-section">
+          <div class="logo-badge">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            <span class="logo-text">MotelManager</span>
+          </div>
+          
+          <div class="branding-text">
+            <h2 class="title">Đăng ký để tìm phòng trọ và vào ở ngay.</h2>
+            <p class="description">
+             Hàng trăm phòng trọ trống, thông tin rõ ràng, xem là có thể dọn vào ở.
+          </div>
+        </div>
+        
+        <div class="social-proof">
+          <div class="avatars">
+            <img src="https://i.pravatar.cc/150?img=1" alt="User 1" class="avatar">
+            <img src="https://i.pravatar.cc/150?img=2" alt="User 2" class="avatar">
+            <img src="https://i.pravatar.cc/150?img=3" alt="User 3" class="avatar">
+            <div class="avatar-more">+200</div>
+          </div>
+          <p class="proof-text">Đã được tin dùng phòng trọ</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side - Register Form -->
+    <div class="form-section">
+      <!-- Close Button -->
+      <button class="close-button" (click)="router.navigate(['/login'])">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+
+      <div class="form-content">
+        <!-- Header -->
+        <div class="form-header">
+          <h1 class="form-title">Đăng Ký Tài Khoản</h1>
+          <p class="form-subtitle">Vui lòng điền thông tin để tạo tài khoản mới.</p>
+        </div>
+
+        <!-- Form -->
+        <form (ngSubmit)="onRegister()" class="register-form">
+          
+          <!-- Full Name -->
+          <div class="form-group">
+            <label>Họ tên đầy đủ <span class="required">*</span></label>
+            <div class="input-wrapper" [class.valid]="fullNameValid">
+              <input 
+                type="text" 
+                [(ngModel)]="fullName" 
+                name="fullName"
+                placeholder="Nguyễn Văn A"
+                required
+              />
+              <svg *ngIf="fullNameValid" class="validation-icon success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input 
+              type="email" 
+              [(ngModel)]="email" 
+              name="email"
+              placeholder="email@example.com"
+              required
+            />
+          </div>
+
+          <!-- Phone & ID Card (2 columns) -->
+          <div class="form-row">
             <div class="form-group">
-                <label for="username">Tên đăng nhập *</label>
-                <input type="text" id="username" [(ngModel)]="username" name="username" placeholder="Nhập tên đăng nhập"
-                    required />
+              <label>Số điện thoại <span class="required">*</span></label>
+              <input 
+                type="tel" 
+                [(ngModel)]="phone" 
+                name="phone"
+                placeholder="0912..."
+                required
+              />
             </div>
-
             <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" [(ngModel)]="email" name="email" placeholder="Nhập email" required />
+              <label>CCCD/CMND</label>
+              <input 
+                type="text" 
+                [(ngModel)]="idCard" 
+                name="idCard"
+                placeholder="Số thẻ"
+              />
             </div>
+          </div>
 
-            <div class="form-group">
-                <label for="fullName">Họ và tên *</label>
-                <input type="text" id="fullName" [(ngModel)]="fullName" name="fullName" placeholder="Nhập họ và tên"
-                    required />
+          <!-- Username -->
+          <div class="form-group">
+            <label>Tên đăng nhập <span class="required">*</span></label>
+            <input 
+              type="text" 
+              [(ngModel)]="username" 
+              name="username"
+              placeholder="username123"
+              required
+            />
+          </div>
+
+          <!-- Password -->
+          <div class="form-group">
+            <label>Mật khẩu <span class="required">*</span></label>
+            <div class="input-wrapper">
+              <input 
+                [type]="showPassword ? 'text' : 'password'"
+                [(ngModel)]="password" 
+                name="password"
+                placeholder="••••••••"
+                required
+              />
+              <button 
+                type="button" 
+                class="password-toggle"
+                (click)="togglePassword()">
+                <svg *ngIf="!showPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                <svg *ngIf="showPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                </svg>
+              </button>
             </div>
-
-            <div class="form-group">
-                <label for="phone">Số điện thoại</label>
-                <input type="tel" id="phone" [(ngModel)]="phone" name="phone" placeholder="Nhập số điện thoại" />
+            
+            <!-- Password Strength Meter -->
+            <div *ngIf="password" class="password-strength">
+              <div class="strength-bars">
+                <div class="bar" [class.active]="getPasswordStrength().level >= 1" [class]="'bar-' + getPasswordStrength().color"></div>
+                <div class="bar" [class.active]="getPasswordStrength().level >= 2" [class]="'bar-' + getPasswordStrength().color"></div>
+                <div class="bar" [class.active]="getPasswordStrength().level >= 3" [class]="'bar-' + getPasswordStrength().color"></div>
+                <div class="bar" [class.active]="getPasswordStrength().level >= 4" [class]="'bar-' + getPasswordStrength().color"></div>
+              </div>
+              <p class="strength-text" [class]="'text-' + getPasswordStrength().color">
+                Độ mạnh: {{ getPasswordStrength().text }}
+              </p>
             </div>
+          </div>
 
-            <div class="form-group">
-                <label for="password">Mật khẩu *</label>
-                <input type="password" id="password" [(ngModel)]="password" name="password"
-                    placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)" required />
+          <!-- Confirm Password -->
+          <div class="form-group">
+            <label>Xác nhận mật khẩu <span class="required">*</span></label>
+            <div class="input-wrapper" [class.valid]="passwordsMatch" [class.invalid]="passwordsDontMatch">
+              <input 
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [(ngModel)]="confirmPassword" 
+                name="confirmPassword"
+                placeholder="••••••••"
+                required
+              />
+              <svg *ngIf="passwordsMatch" class="validation-icon success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg *ngIf="passwordsDontMatch" class="validation-icon error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
             </div>
+            <p *ngIf="passwordsDontMatch" class="error-text">Mật khẩu không khớp</p>
+          </div>
 
-            <div class="form-group">
-                <label for="confirmPassword">Xác nhận mật khẩu *</label>
-                <input type="password" id="confirmPassword" [(ngModel)]="confirmPassword" name="confirmPassword"
-                    placeholder="Nhập lại mật khẩu" required />
-            </div>
+          <!-- Terms Checkbox -->
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="agreeTerms" name="agreeTerms" />
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-text">
+              Tôi đồng ý với <a href="#" class="link">điều khoản sử dụng</a> và chính sách bảo mật.
+            </span>
+          </label>
 
-            <button type="submit" [disabled]="loading">
-                {{ loading ? 'Đang đăng ký...' : 'Đăng ký' }}
-            </button>
+          <!-- Error/Success Message -->
+          <div *ngIf="message" class="message-box" 
+               [class.error]="message.includes('thất bại') || message.includes('không')"
+               [class.success]="message.includes('thành công')">
+            {{ message }}
+          </div>
 
-            <div class="message" *ngIf="message"
-                [class.error]="message.includes('thất bại') || message.includes('không') || message.includes('đã tồn tại')">
-                {{ message }}
-            </div>
+          <!-- Submit Button -->
+          <button type="submit" class="submit-button" [disabled]="loading">
+            {{ loading ? 'Đang đăng ký...' : 'Đăng Ký Ngay' }}
+          </button>
+
+          <!-- Login Link -->
+          <div class="login-link">
+            <p>
+              Đã có tài khoản? 
+              <a routerLink="/login">Đăng nhập</a>
+            </p>
+          </div>
         </form>
 
-        <div class="login-link">
-            Đã có tài khoản? <a routerLink="/login">Đăng nhập ngay</a>
-        </div>
+      </div>
     </div>
+
+  </div>
 </div>

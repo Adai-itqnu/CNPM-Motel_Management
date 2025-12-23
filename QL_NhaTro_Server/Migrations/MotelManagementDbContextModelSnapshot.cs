@@ -73,18 +73,21 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(15,2)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("UserId1")
+                        .HasColumnType("varchar(50)");
 
                     b.Property<int>("WaterNewIndex")
                         .HasColumnType("int");
@@ -105,7 +108,13 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.HasIndex("Month", "Year");
 
                     b.HasIndex("ContractId", "Month", "Year")
                         .IsUnique();
@@ -138,6 +147,9 @@ namespace QL_NhaTro_Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Message")
                         .HasColumnType("text");
 
@@ -151,9 +163,12 @@ namespace QL_NhaTro_Server.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -165,7 +180,11 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("Status");
 
                     b.HasIndex("UserId");
 
@@ -205,25 +224,34 @@ namespace QL_NhaTro_Server.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
-
                     b.Property<string>("TermsAndConditions")
                         .HasColumnType("text");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("UserId1")
+                        .HasColumnType("varchar(50)");
+
                     b.Property<int>("WaterStartIndex")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("EndDate");
+
                     b.HasIndex("RoomId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("StartDate");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Contracts");
                 });
@@ -271,15 +299,18 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
-                    b.Property<string>("TenantId")
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("UserId1")
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -287,7 +318,15 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasIndex("BookingId");
 
-                    b.HasIndex("TenantId");
+                    b.HasIndex("PaymentDate");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId1");
+
+                    b.HasIndex("PaymentDate", "Status");
 
                     b.ToTable("Payments");
                 });
@@ -308,7 +347,7 @@ namespace QL_NhaTro_Server.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
-                    b.Property<string>("CurrentTenantId")
+                    b.Property<string>("CurrentUserId")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
 
@@ -338,7 +377,7 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -348,10 +387,16 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentTenantId");
+                    b.HasIndex("CurrentUserId");
+
+                    b.HasIndex("Floor");
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("Price");
+
+                    b.HasIndex("Status");
 
                     b.ToTable("Rooms");
                 });
@@ -414,6 +459,8 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("IsPrimary");
+
                     b.HasIndex("RoomId");
 
                     b.ToTable("Room_Images");
@@ -424,6 +471,10 @@ namespace QL_NhaTro_Server.Migrations
                     b.Property<string>("Id")
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(500)
@@ -460,7 +511,7 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.Property<string>("Role")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -477,6 +528,8 @@ namespace QL_NhaTro_Server.Migrations
 
                     b.HasIndex("IdCard")
                         .IsUnique();
+
+                    b.HasIndex("Role");
 
                     b.HasIndex("Username")
                         .IsUnique();
@@ -498,17 +551,21 @@ namespace QL_NhaTro_Server.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("QL_NhaTro_Server.Models.User", "Tenant")
-                        .WithMany("Bills")
-                        .HasForeignKey("TenantId")
+                    b.HasOne("QL_NhaTro_Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("QL_NhaTro_Server.Models.User", null)
+                        .WithMany("Bills")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("Contract");
 
                     b.Navigation("Room");
 
-                    b.Navigation("Tenant");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QL_NhaTro_Server.Models.Booking", b =>
@@ -538,15 +595,19 @@ namespace QL_NhaTro_Server.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("QL_NhaTro_Server.Models.User", "Tenant")
-                        .WithMany("Contracts")
-                        .HasForeignKey("TenantId")
+                    b.HasOne("QL_NhaTro_Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("QL_NhaTro_Server.Models.User", null)
+                        .WithMany("Contracts")
+                        .HasForeignKey("UserId1");
+
                     b.Navigation("Room");
 
-                    b.Navigation("Tenant");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QL_NhaTro_Server.Models.Payment", b =>
@@ -561,27 +622,31 @@ namespace QL_NhaTro_Server.Migrations
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("QL_NhaTro_Server.Models.User", "Tenant")
-                        .WithMany("Payments")
-                        .HasForeignKey("TenantId")
+                    b.HasOne("QL_NhaTro_Server.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("QL_NhaTro_Server.Models.User", null)
+                        .WithMany("Payments")
+                        .HasForeignKey("UserId1");
 
                     b.Navigation("Bill");
 
                     b.Navigation("Booking");
 
-                    b.Navigation("Tenant");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("QL_NhaTro_Server.Models.Room", b =>
                 {
-                    b.HasOne("QL_NhaTro_Server.Models.User", "CurrentTenant")
+                    b.HasOne("QL_NhaTro_Server.Models.User", "CurrentUser")
                         .WithMany()
-                        .HasForeignKey("CurrentTenantId")
+                        .HasForeignKey("CurrentUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
-                    b.Navigation("CurrentTenant");
+                    b.Navigation("CurrentUser");
                 });
 
             modelBuilder.Entity("QL_NhaTro_Server.Models.RoomAmenity", b =>

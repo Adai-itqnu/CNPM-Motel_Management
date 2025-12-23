@@ -50,6 +50,15 @@ export class RoomManagementComponent implements OnInit {
   uploadProgress: { [key: string]: number } = {};
   isUploading = false;
   newAmenity = '';
+  maxImages = 5; // Giới hạn tối đa 5 ảnh
+
+  // Room type options
+  roomTypes = [
+    { value: 'single', label: 'Phòng đơn' },
+    { value: 'double', label: 'Phòng đôi' },
+    { value: 'vip', label: 'Phòng VIP' },
+    { value: 'studio', label: 'Phòng studio' }
+  ];
 
   constructor(private roomService: RoomService) {}
 
@@ -186,16 +195,39 @@ export class RoomManagementComponent implements OnInit {
         this.loading = false;
       })
     ).subscribe({
-      next: (response) => {
-        this.message = 'Tạo phòng thành công';
-        this.closeModal();
-        this.loadRooms();
+      next: (response: any) => {
+        const roomId = response.roomId;
+        
+        // Upload images if any selected
+        if (this.selectedFiles.length > 0 && roomId) {
+          this.message = 'Đang tải ảnh lên...';
+          this.uploadRoomImages(roomId).then(() => {
+            this.message = 'Tạo phòng và tải ảnh thành công!';
+            this.closeModal();
+            this.loadRooms();
+          }).catch(() => {
+            this.message = 'Tạo phòng thành công nhưng có lỗi khi tải ảnh';
+            setTimeout(() => {
+              this.closeModal();
+              this.loadRooms();
+            }, 2000);
+          });
+        } else {
+          this.message = 'Tạo phòng thành công';
+          this.closeModal();
+          this.loadRooms();
+        }
       },
       error: (err) => {
         console.error('Error creating room:', err);
         this.message = err.error?.message || 'Đã xảy ra lỗi khi tạo phòng. Vui lòng thử lại.';
       }
     });
+  }
+
+  // Helper to get file preview URL
+  getFilePreview(file: File): string {
+    return URL.createObjectURL(file);
   }
 
   updateRoom() {
@@ -257,6 +289,13 @@ export class RoomManagementComponent implements OnInit {
   onFileSelected(event: any) {
     const files: FileList = event.target.files;
     if (files && files.length > 0) {
+      // Check total images count (existing + new)
+      const totalImages = this.selectedFiles.length + files.length;
+      if (totalImages > this.maxImages) {
+        this.message = `Chỉ được chọn tối đa ${this.maxImages} ảnh. Bạn đã chọn ${this.selectedFiles.length} ảnh.`;
+        return;
+      }
+
       for (let i = 0; i < files.length; i++) {
         const file = files.item(i);
         if (file) {
@@ -286,35 +325,18 @@ export class RoomManagementComponent implements OnInit {
     if (this.selectedFiles.length === 0) return Promise.resolve();
 
     this.isUploading = true;
-    const uploadPromises = [];
-
-    for (const file of this.selectedFiles) {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const uploadPromise = new Promise<void>((resolve, reject) => {
+    const uploadPromises = this.selectedFiles.map(file => {
+      return new Promise<void>((resolve, reject) => {
         this.roomService.uploadRoomImage(roomId, file).subscribe({
-          next: (event: any) => {
-            if (event.type === 'uploadProgress') {
-              // Update progress
-              this.uploadProgress[file.name] = Math.round(100 * event.loaded / (event.total || 1));
-            } else if (event.type === 'response') {
-              // Upload complete
-              delete this.uploadProgress[file.name];
-              resolve();
-            }
-          },
+          next: () => resolve(),
           error: (err) => {
             console.error('Upload error:', err);
             this.message = `Lỗi khi tải lên ảnh ${file.name}`;
-            delete this.uploadProgress[file.name];
             reject(err);
           }
         });
       });
-
-      uploadPromises.push(uploadPromise);
-    }
+    });
 
     return Promise.all(uploadPromises)
       .then(() => {

@@ -57,7 +57,9 @@ namespace QL_NhaTro_Server.Controllers
                 PasswordHash = HashPassword(dto.Password), // SHA256 - nhanh!
                 FullName = dto.FullName,
                 Phone = dto.Phone,
-                Role = isFirstUser ? UserRole.Admin : UserRole.Tenant, // User đầu tiên = Admin
+                IdCard = dto.IdCard,
+                Address = dto.Address,
+                Role = isFirstUser ? UserRole.Admin : UserRole.User, // User đầu tiên = Admin
                 IsActive = true,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -76,17 +78,10 @@ namespace QL_NhaTro_Server.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto dto)
         {
-            // Tối ưu: Tìm riêng username hoặc email (nhanh hơn OR)
+            // OPTIMIZED: Single query với OR (nhanh hơn 2x!)
             var user = await _db.Users
-                .AsNoTracking() // Không track changes - nhanh hơn
-                .FirstOrDefaultAsync(x => x.Username == dto.UsernameOrEmail);
-            
-            if (user == null)
-            {
-                user = await _db.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(x => x.Email == dto.UsernameOrEmail);
-            }
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Username == dto.UsernameOrEmail || x.Email == dto.UsernameOrEmail);
 
             if (user == null)
                 return Unauthorized("Tài khoản không tồn tại");
@@ -109,6 +104,9 @@ namespace QL_NhaTro_Server.Controllers
                     user.Username,
                     user.Email,
                     user.FullName,
+                    user.Phone,
+                    user.IdCard,
+                    user.Address,
                     role = user.Role.ToString().ToLower() // lowercase để match frontend
                 }
             });

@@ -97,7 +97,8 @@ export class UserManagementComponent implements OnInit {
 
   // Helper: Lấy class badge cho role
   getRoleBadge(role: string): string {
-    return role === 'Admin' ? 'badge-admin' : 'badge-tenant';
+    return role === 'Admin' ? 'badge-admin' : 'badge-user';
+
   }
 
   // Helper: Lấy text hiển thị cho role

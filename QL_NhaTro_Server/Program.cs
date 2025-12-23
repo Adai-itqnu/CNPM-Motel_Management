@@ -14,6 +14,7 @@ builder.Services.AddDbContext<MotelManagementDbContext>(options =>
 );
 
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<VNPayService>();
 
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
 var key = Encoding.UTF8.GetBytes(secretKey!);
@@ -46,6 +47,9 @@ builder.Services.AddControllers();
 var app = builder.Build();
 
 app.UseCors();
+
+// Enable static files serving (for uploaded images)
+app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 

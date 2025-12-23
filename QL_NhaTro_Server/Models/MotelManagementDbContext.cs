@@ -29,6 +29,7 @@ namespace QL_NhaTro_Server.Models
                 entity.HasIndex(e => e.Username).IsUnique();
                 entity.HasIndex(e => e.Email).IsUnique();
                 entity.HasIndex(e => e.IdCard).IsUnique();
+                entity.HasIndex(e => e.Role); // Index for role filtering
                 
                 entity.Property(e => e.Role)
                     .HasConversion<string>();
@@ -37,23 +38,39 @@ namespace QL_NhaTro_Server.Models
             // Room entity configuration
             modelBuilder.Entity<Room>(entity =>
             {
-                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.Name).IsUnique(); // Keep existing unique index
+                entity.HasIndex(e => e.Status); // Index for status filtering
+                entity.HasIndex(e => e.Floor); // Index for floor filtering
+                entity.HasIndex(e => e.Price); // Index for price filtering
                 
                 entity.Property(e => e.Status)
                     .HasConversion<string>();
 
-                entity.HasOne(e => e.CurrentTenant)
+                entity.HasOne(e => e.CurrentUser)
                     .WithMany()
-                    .HasForeignKey(e => e.CurrentTenantId)
+                    .HasForeignKey(e => e.CurrentUserId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
 
-                entity.HasMany(e => e.Amenities)
-                    .WithOne(e => e.Room)
+            // RoomAmenity configuration
+            modelBuilder.Entity<RoomAmenity>(entity =>
+            {
+                entity.HasIndex(e => e.RoomId); // Index for room lookups
+                
+                entity.HasOne(e => e.Room)
+                    .WithMany(r => r.Amenities)
                     .HasForeignKey(e => e.RoomId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
 
-                entity.HasMany(e => e.Images)
-                    .WithOne(e => e.Room)
+            // RoomImage configuration
+            modelBuilder.Entity<RoomImage>(entity =>
+            {
+                entity.HasIndex(e => e.RoomId); // Index for room lookups
+                entity.HasIndex(e => e.IsPrimary); // Index for primary image queries
+                
+                entity.HasOne(e => e.Room)
+                    .WithMany(r => r.Images)
                     .HasForeignKey(e => e.RoomId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -66,6 +83,9 @@ namespace QL_NhaTro_Server.Models
 
                 entity.Property(e => e.Status)
                     .HasConversion<string>();
+                entity.HasIndex(e => e.Status); // Index for status filtering
+                entity.HasIndex(e => e.UserId); // Index for user bookings
+                entity.HasIndex(e => e.CreatedAt); // Index for sorting by date
 
                 entity.HasOne(e => e.Room)
                     .WithMany(e => e.Bookings)
@@ -81,25 +101,32 @@ namespace QL_NhaTro_Server.Models
             // Contract entity configuration
             modelBuilder.Entity<Contract>(entity =>
             {
-                entity.Property(e => e.Status)
+                entity.Property(e => e.Status) // Original property name
                     .HasConversion<string>();
+                entity.HasIndex(e => e.UserId); // Index for user contracts
+                entity.HasIndex(e => e.RoomId); // Index for room contracts
+                entity.HasIndex(e => e.StartDate); // Index for date queries
+                entity.HasIndex(e => e.EndDate); // Index for expiry checks
 
                 entity.HasOne(e => e.Room)
                     .WithMany(e => e.Contracts)
                     .HasForeignKey(e => e.RoomId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(e => e.Tenant)
-                    .WithMany(e => e.Contracts)
-                    .HasForeignKey(e => e.TenantId)
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Bill entity configuration
             modelBuilder.Entity<Bill>(entity =>
             {
-                entity.Property(e => e.Status)
+                entity.Property(e => e.Status) // Original property name
                     .HasConversion<string>();
+                entity.HasIndex(e => e.UserId); // Index for user bills
+                entity.HasIndex(e => new { e.Month, e.Year }); // Composite index for monthly queries
+                entity.HasIndex(e => e.Status); // Index for payment status filtering (using original 'Status' property)
 
                 entity.HasOne(e => e.Contract)
                     .WithMany(e => e.Bills)
@@ -111,9 +138,9 @@ namespace QL_NhaTro_Server.Models
                     .HasForeignKey(e => e.RoomId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(e => e.Tenant)
-                    .WithMany(e => e.Bills)
-                    .HasForeignKey(e => e.TenantId)
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 // Composite index for month/year per contract
@@ -128,6 +155,10 @@ namespace QL_NhaTro_Server.Models
 
                 entity.Property(e => e.Status)
                     .HasConversion<string>();
+                entity.HasIndex(e => e.UserId); // Index for user payments
+                entity.HasIndex(e => e.Status); // Index for status filtering
+                entity.HasIndex(e => e.PaymentDate); // Index for date queries
+                entity.HasIndex(e => new { e.PaymentDate, e.Status }); // Composite for stats queries
 
                 entity.HasOne(e => e.Bill)
                     .WithMany(e => e.Payments)
@@ -139,9 +170,9 @@ namespace QL_NhaTro_Server.Models
                     .HasForeignKey(e => e.BookingId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(e => e.Tenant)
-                    .WithMany(e => e.Payments)
-                    .HasForeignKey(e => e.TenantId)
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

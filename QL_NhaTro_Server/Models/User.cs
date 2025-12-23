@@ -6,7 +6,7 @@ namespace QL_NhaTro_Server.Models
     public enum UserRole
     {
         Admin,
-        Tenant
+        User
     }
 
     [Table("Users")]
@@ -39,8 +39,11 @@ namespace QL_NhaTro_Server.Models
         [MaxLength(20)]
         public string? IdCard { get; set; }
 
+        [MaxLength(500)]
+        public string? Address { get; set; }
+
         [Required]
-        public UserRole Role { get; set; } = UserRole.Tenant;
+        public UserRole Role { get; set; } = UserRole.User;
 
         [MaxLength(500)]
         public string? AvatarUrl { get; set; }

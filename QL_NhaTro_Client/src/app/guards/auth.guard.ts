@@ -18,11 +18,11 @@ export const adminGuard: CanActivateFn = () => {
   return roleGuard('admin');
 };
 
-export const tenantGuard: CanActivateFn = () => {
-  return roleGuard('tenant');
+export const userGuard: CanActivateFn = () => {
+  return roleGuard('user');
 };
 
-function roleGuard(role: 'admin' | 'tenant'): boolean {
+function roleGuard(role: 'admin' | 'user'): boolean {
   const auth = inject(AuthService);
   const router = inject(Router);
 
@@ -32,7 +32,7 @@ function roleGuard(role: 'admin' | 'tenant'): boolean {
   }
 
   const hasRole =
-    role === 'admin' ? auth.isAdmin() : auth.isTenant();
+    role === 'admin' ? auth.isAdmin() : auth.isUser();
 
   if (hasRole) {
     return true;
@@ -41,3 +41,4 @@ function roleGuard(role: 'admin' | 'tenant'): boolean {
   router.navigate(['/login']);
   return false;
 }
+

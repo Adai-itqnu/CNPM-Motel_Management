@@ -2,7 +2,7 @@ export interface Payment {
   id: string;
   billId?: string;
   bookingId?: string;
-  tenantId: string;
+  userId: string;
   amount: number;
   paymentType: 'deposit' | 'monthly_bill';
   paymentMethod: string;
@@ -16,7 +16,7 @@ export interface Payment {
   // Populated fields
   bill?: any; // Bill model
   booking?: any; // Booking model
-  tenant?: any; // User model
+  user?: any; // User model
 }
 
 export interface CreatePaymentDto {

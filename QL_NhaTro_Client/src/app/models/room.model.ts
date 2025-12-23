@@ -10,7 +10,7 @@ export interface Room {
   area?: number;
   floor: number;
   status: 'available' | 'occupied' | 'maintenance' | 'reserved';
-  currentTenantId?: string;
+  currentUserId?: string;
   currentContractId?: string;
   amenities?: RoomAmenity[];
   images?: RoomImage[];

@@ -54,7 +54,7 @@ namespace QL_NhaTro_Server.DTOs
         public string ContractId { get; set; } = string.Empty;
         public string RoomId { get; set; } = string.Empty;
         public string RoomName { get; set; } = string.Empty;
-        public string TenantId { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
         public string TenantName { get; set; } = string.Empty;
         public int Month { get; set; }
         public int Year { get; set; }
@@ -78,51 +78,5 @@ namespace QL_NhaTro_Server.DTOs
         public DateTime? DueDate { get; set; }
         public string? Notes { get; set; }
         public DateTime CreatedAt { get; set; }
-    }
-
-    // ============ PAYMENT DTOs ============
-    public class CreatePaymentDto
-    {
-        public string? BillId { get; set; }
-
-        public string? BookingId { get; set; }
-
-        [Required]
-        [Range(0, double.MaxValue)]
-        public decimal Amount { get; set; }
-
-        [Required]
-        public string PaymentType { get; set; } = string.Empty; // "deposit" or "monthly_bill"
-
-        [Required]
-        public string PaymentMethod { get; set; } = "vnpay";
-    }
-
-    public class PaymentResponseDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public string? BillId { get; set; }
-        public string? BookingId { get; set; }
-        public string TenantId { get; set; } = string.Empty;
-        public decimal Amount { get; set; }
-        public string PaymentType { get; set; } = string.Empty;
-        public string PaymentMethod { get; set; } = string.Empty;
-        public string Status { get; set; } = string.Empty;
-        public string Provider { get; set; } = string.Empty;
-        public string? ProviderTxnId { get; set; }
-        public DateTime? PaymentDate { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
-    public class VNPayCallbackDto
-    {
-        public string vnp_TxnRef { get; set; } = string.Empty;
-        public string vnp_Amount { get; set; } = string.Empty;
-        public string vnp_OrderInfo { get; set; } = string.Empty;
-        public string vnp_ResponseCode { get; set; } = string.Empty;
-        public string vnp_TransactionNo { get; set; } = string.Empty;
-        public string vnp_BankCode { get; set; } = string.Empty;
-        public string vnp_PayDate { get; set; } = string.Empty;
-        public string vnp_SecureHash { get; set; } = string.Empty;
     }
 }

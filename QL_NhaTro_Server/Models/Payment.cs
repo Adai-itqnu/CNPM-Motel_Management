@@ -31,7 +31,7 @@ namespace QL_NhaTro_Server.Models
 
         [Required]
         [MaxLength(50)]
-        public string TenantId { get; set; } = string.Empty;
+        public string UserId { get; set; } = string.Empty;
 
         [Required]
         [Column(TypeName = "decimal(15,2)")]
@@ -66,7 +66,7 @@ namespace QL_NhaTro_Server.Models
         [ForeignKey("BookingId")]
         public virtual Booking? Booking { get; set; }
 
-        [ForeignKey("TenantId")]
-        public virtual User Tenant { get; set; } = null!;
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; } = null!;
     }
 }

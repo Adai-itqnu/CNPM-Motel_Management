@@ -32,8 +32,9 @@
     <div class="room-card" *ngFor="let room of rooms">
       <div class="room-image">
         <img 
-          [src]="room.images && room.images.length > 0 ? room.images[0].imageUrl : 'assets/default-room.jpg'" 
+          [src]="room.images && room.images.length > 0 ? 'http://localhost:5001' + room.images[0].imageUrl : 'https://via.placeholder.com/400x300?text=No+Image'" 
           [alt]="room.name"
+          onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'"
         />
         <span class="room-status" [ngClass]="getStatusBadgeClass(room.status)">
           {{ getStatusText(room.status) }}
@@ -151,8 +152,13 @@
         </div>
 
         <div class="form-group">
-          <label>Loại phòng</label>
-          <input type="text" [(ngModel)]="roomForm.roomType" name="roomType" />
+          <label>Loại phòng *</label>
+          <select [(ngModel)]="roomForm.roomType" name="roomType" required>
+            <option value="">-- Chọn loại phòng --</option>
+            <option *ngFor="let type of roomTypes" [value]="type.value">
+              {{ type.label }}
+            </option>
+          </select>
         </div>
 
         <div class="form-row">
@@ -194,6 +200,38 @@
         <div class="form-group">
           <label>Mô tả</label>
           <textarea [(ngModel)]="roomForm.description" name="description" rows="3"></textarea>
+        </div>
+
+        <!-- Image Upload Section (Chỉ hiện khi tạo mới) -->
+        <div class="form-group" *ngIf="modalMode === 'create'">
+          <label>Hình ảnh phòng (Tối đa {{ maxImages }} ảnh)</label>
+          <input 
+            type="file" 
+            accept="image/*" 
+            multiple 
+            (change)="onFileSelected($event)"
+            #fileInput
+            style="display: none;"
+          />
+          <button 
+            type="button" 
+            class="btn-upload" 
+            (click)="fileInput.click()"
+            [disabled]="selectedFiles.length >= maxImages"
+          >
+            📷 Chọn ảnh ({{ selectedFiles.length }}/{{ maxImages }})
+          </button>
+          
+          <!-- Preview selected images -->
+          <div class="image-preview" *ngIf="selectedFiles.length > 0">
+            <div *ngFor="let file of selectedFiles; let i = index" class="preview-item">
+              <img [src]="getFilePreview(file)" [alt]="file.name">
+              <button type="button" class="btn-remove-preview" (click)="removeSelectedFile(i)">
+                ✖
+              </button>
+              <span class="filename">{{ file.name }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">

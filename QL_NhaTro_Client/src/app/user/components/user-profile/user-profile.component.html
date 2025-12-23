@@ -1,0 +1,112 @@
+<div class="profile-container">
+  <!-- Header -->
+  <div class="profile-header">
+    <h1>Thông tin cá nhân</h1>
+    <p>Quản lý thông tin tài khoản của bạn</p>
+  </div>
+
+  <!-- Message -->
+  <div class="alert" *ngIf="message" [class.alert-success]="messageType === 'success'" [class.alert-error]="messageType === 'error'">
+    {{ message }}
+  </div>
+
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <!-- Avatar Section -->
+    <div class="avatar-section">
+      <div class="large-avatar">
+        {{ getInitials() }}
+      </div>
+      <h2>{{ currentUser?.fullName || 'User' }}</h2>
+      <p class="user-role">{{ currentUser?.role === 'admin' ? 'Quản trị viên' : 'Người thuê trọ' }}</p>
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <div class="section-header">
+        <h3>Thông tin chi tiết</h3>
+        <button *ngIf="!isEditing" class="btn-edit" (click)="toggleEdit()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Chỉnh sửa
+        </button>
+      </div>
+
+      <!-- View Mode -->
+      <div *ngIf="!isEditing" class="info-grid">
+        <div class="info-item">
+          <label>Họ và tên</label>
+          <p>{{ currentUser?.fullName || 'Chưa cập nhật' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Email</label>
+          <p>{{ currentUser?.email || 'Chưa cập nhật' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Số điện thoại</label>
+          <p>{{ currentUser?.phone || 'Chưa cập nhật' }}</p>
+        </div>
+        <div class="info-item">
+          <label>Số CCCD</label>
+          <p [class.warning]="!currentUser?.idCard">
+            {{ currentUser?.idCard || '⚠️ Chưa cập nhật (bắt buộc để đặt phòng)' }}
+          </p>
+        </div>
+        <div class="info-item full-width">
+          <label>Địa chỉ</label>
+          <p>{{ currentUser?.address || 'Chưa cập nhật' }}</p>
+        </div>
+      </div>
+
+      <!-- Edit Mode -->
+      <form *ngIf="isEditing" class="edit-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ và tên <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="profileForm.fullName" name="fullName" placeholder="Nhập họ và tên" required>
+          </div>
+          <div class="form-group">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" [(ngModel)]="profileForm.email" name="email" placeholder="Nhập email" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input type="tel" [(ngModel)]="profileForm.phone" name="phone" placeholder="Nhập số điện thoại">
+          </div>
+          <div class="form-group">
+            <label>Số CCCD <span class="required">*</span></label>
+            <input type="text" [(ngModel)]="profileForm.idCard" name="idCard" placeholder="Nhập số CCCD" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Địa chỉ</label>
+          <textarea [(ngModel)]="profileForm.address" name="address" rows="3" placeholder="Nhập địa chỉ"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-save" (click)="saveProfile()" [disabled]="isLoading">
+            {{ isLoading ? 'Đang lưu...' : 'Lưu thay đổi' }}
+          </button>
+          <button type="button" class="btn-cancel" (click)="cancelEdit()">Hủy</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="danger-zone">
+    <h3>Vùng nguy hiểm</h3>
+    <p>Xóa tài khoản sẽ xóa vĩnh viễn tất cả dữ liệu của bạn</p>
+    <button class="btn-delete" (click)="deleteAccount()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+      </svg>
+      Xóa tài khoản
+    </button>
+  </div>
+</div>

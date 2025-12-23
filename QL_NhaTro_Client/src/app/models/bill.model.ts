@@ -2,7 +2,7 @@ export interface Bill {
   id: string;
   contractId: string;
   roomId: string;
-  tenantId: string;
+  userId: string;
   month: number;
   year: number;
   
@@ -30,7 +30,7 @@ export interface Bill {
   // Populated fields
   contract?: any; // Contract model
   room?: any; // Room model
-  tenant?: any; // User model
+  user?: any; // User model
 }
 
 export interface CreateBillDto {

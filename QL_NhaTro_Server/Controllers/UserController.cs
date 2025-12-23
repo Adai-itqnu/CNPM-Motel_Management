@@ -118,7 +118,7 @@ namespace QL_NhaTro_Server.Controllers
             // Lấy danh sách hợp đồng
             var contracts = await _db.Contracts
                 .Include(c => c.Room)
-                .Where(c => c.TenantId == id)
+                .Where(c => c.UserId == id)
                 .OrderByDescending(c => c.StartDate)
                 .Select(c => new
                 {
@@ -166,7 +166,7 @@ namespace QL_NhaTro_Server.Controllers
 
             var bills = await _db.Bills
                 .Include(b => b.Room)
-                .Where(b => b.TenantId == id)
+                .Where(b => b.UserId == id)
                 .OrderByDescending(b => b.Year)
                 .ThenByDescending(b => b.Month)
                 .Select(b => new
@@ -190,20 +190,61 @@ namespace QL_NhaTro_Server.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto dto)
         {
-            var user = await _db.Users.FindAsync(id);
-            if (user == null)
-                return NotFound(new { message = "Không tìm thấy người dùng" });
+            Console.WriteLine($"[UpdateUser] Request received for user ID: {id}");
+            Console.WriteLine($"[UpdateUser] DTO: FullName={dto.FullName}, Email={dto.Email}, Phone={dto.Phone}, IdCard={dto.IdCard}, Address={dto.Address}");
+            
+            try
+            {
+                var user = await _db.Users.FindAsync(id);
+                if (user == null)
+                {
+                    Console.WriteLine($"[UpdateUser] User not found: {id}");
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
 
-            if (!string.IsNullOrEmpty(dto.FullName)) user.FullName = dto.FullName;
-            if (dto.Phone != null) user.Phone = dto.Phone;
-            if (dto.IdCard != null) user.IdCard = dto.IdCard;
-            if (dto.AvatarUrl != null) user.AvatarUrl = dto.AvatarUrl;
+                Console.WriteLine($"[UpdateUser] Found user: {user.Username}");
+                
+                // Update all fields
+                if (!string.IsNullOrEmpty(dto.FullName)) 
+                {
+                    Console.WriteLine($"[UpdateUser] Updating FullName: {user.FullName} -> {dto.FullName}");
+                    user.FullName = dto.FullName;
+                }
+                if (!string.IsNullOrEmpty(dto.Email))
+                {
+                    Console.WriteLine($"[UpdateUser] Updating Email: {user.Email} -> {dto.Email}");
+                    user.Email = dto.Email;
+                }
+                if (dto.Phone != null) 
+                {
+                    Console.WriteLine($"[UpdateUser] Updating Phone: {user.Phone} -> {dto.Phone}");
+                    user.Phone = dto.Phone;
+                }
+                if (dto.IdCard != null) 
+                {
+                    Console.WriteLine($"[UpdateUser] Updating IdCard: {user.IdCard} -> {dto.IdCard}");
+                    user.IdCard = dto.IdCard;
+                }
+                if (dto.Address != null)
+                {
+                    Console.WriteLine($"[UpdateUser] Updating Address");
+                    user.Address = dto.Address;
+                }
 
-            user.UpdatedAt = DateTime.Now;
+                user.UpdatedAt = DateTime.Now;
 
-            await _db.SaveChangesAsync();
+                Console.WriteLine("[UpdateUser] Saving changes to database...");
+                await _db.SaveChangesAsync();
+                Console.WriteLine("[UpdateUser] Changes saved successfully");
 
-            return Ok(new { message = "Cập nhật thông tin thành công" });
+                return Ok(new { message = "Cập nhật thông tin thành công" });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UpdateUser] ERROR: {ex.Message}");
+                Console.WriteLine($"[UpdateUser] StackTrace: {ex.StackTrace}");
+                return StatusCode(500, new { message = "Lỗi: " + ex.Message });
+            }
         }
 
         // PATCH: api/users/{id}/toggle-status - Khóa/mở tài khoản

@@ -49,6 +49,11 @@ export class UserService {
     });
   }
 
+  // Alias for getUser (for consistency)
+  getUserById(id: string): Observable<any> {
+    return this.getUser(id);
+  }
+
   // Lấy lịch sử thuê phòng
   getRentalHistory(id: string): Observable<any> {
     return this.http.get(`${this.REST_API_SERVER}/users/${id}/rental-history`, {

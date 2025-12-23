@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace QL_NhaTro_Server.DTOs
 {
-    // ============ ROOM DTOs ============
     public class CreateRoomDto
     {
         [Required]
@@ -83,7 +82,7 @@ namespace QL_NhaTro_Server.DTOs
         public decimal? Area { get; set; }
         public int Floor { get; set; }
         public string Status { get; set; } = string.Empty;
-        public string? CurrentTenantId { get; set; }
+        public string? CurrentUserId { get; set; }
         public List<string> Amenities { get; set; } = new();
         public List<RoomImageDto> Images { get; set; } = new();
     }

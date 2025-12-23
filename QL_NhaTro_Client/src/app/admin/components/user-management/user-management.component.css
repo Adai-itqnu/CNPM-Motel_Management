@@ -135,10 +135,11 @@
   color: white;
 }
 
-.badge-tenant {
+.badge-user {
   background: #17a2b8;
   color: white;
 }
+
 
 .badge-active {
   background: #28a745;

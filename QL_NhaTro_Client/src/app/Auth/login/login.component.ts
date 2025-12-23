@@ -17,11 +17,16 @@ export class LoginComponent {
   password = '';
   message = '';
   loading = false;
+  showPassword = false;
 
   constructor(
     private authService: AuthService,
     private router: Router
   ) {}
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 
   onLogin() {
     if (!this.usernameOrEmail || !this.password) {
@@ -42,7 +47,7 @@ export class LoginComponent {
           }
         },
         error: (err) => {
-          this.message = err.error?.message || 'Đăng nhập thất bại';
+          this.message = err.error?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập';
           this.loading = false;
         },
         complete: () => {

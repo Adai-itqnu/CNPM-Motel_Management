@@ -1,7 +1,7 @@
 export interface Contract {
   id: string;
   roomId: string;
-  tenantId: string;
+  userId: string;
   startDate: Date;
   endDate?: Date;
   depositAmount: number;
@@ -15,12 +15,12 @@ export interface Contract {
   
   // Populated fields
   room?: any; // Room model
-  tenant?: any; // User model
+  user?: any; // User model
 }
 
 export interface CreateContractDto {
   roomId: string;
-  tenantId: string;
+  userId: string;
   startDate: Date;
   endDate?: Date;
   depositAmount: number;

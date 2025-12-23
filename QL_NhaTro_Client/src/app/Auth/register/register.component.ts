@@ -12,60 +12,109 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './register.component.css'
 })
 export class RegisterComponent {
-
-  username = '';
+  
+  // Form fields
+  fullName = '';
   email = '';
+  phone = '';
+  idCard = '';
+  username = '';
   password = '';
   confirmPassword = '';
-  fullName = '';
-  phone = '';
+  agreeTerms = false;
 
+  // UI states
   message = '';
   loading = false;
+  showPassword = false;
+  showConfirmPassword = false;
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    public router: Router
   ) {}
 
+  // Password strength calculator
+  getPasswordStrength(): { level: number; text: string; color: string } {
+    if (!this.password) {
+      return { level: 0, text: '', color: '' };
+    }
+
+    let strength = 0;
+    if (this.password.length >= 8) strength++;
+    if (/[a-z]/.test(this.password)) strength++;
+    if (/[A-Z]/.test(this.password)) strength++;
+    if (/[0-9]/.test(this.password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(this.password)) strength++;
+
+    if (strength <= 2) {
+      return { level: 1, text: 'Yếu', color: 'red' };
+    } else if (strength === 3) {
+      return { level: 2, text: 'Trung bình', color: 'yellow' };
+    } else if (strength === 4) {
+      return { level: 3, text: 'Mạnh', color: 'green' };
+    } else {
+      return { level: 4, text: 'Rất mạnh', color: 'blue' };
+    }
+  }
+
+  // Check if passwords match
+  get passwordsMatch(): boolean {
+    return this.password === this.confirmPassword && this.confirmPassword.length > 0;
+  }
+
+  get passwordsDontMatch(): boolean {
+    return this.password !== this.confirmPassword && this.confirmPassword.length > 0;
+  }
+
+  // Validate full name
+  get fullNameValid(): boolean {
+    return this.fullName.trim().length >= 3;
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleConfirmPassword() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
   onRegister() {
-    // 1️⃣ Kiểm tra dữ liệu bắt buộc
-    if (!this.username || !this.email || !this.password || !this.fullName) {
-      this.message = 'Vui lòng nhập đầy đủ thông tin';
+    // Basic validation
+    if (!this.fullName || !this.email || !this.phone || !this.username || !this.password || !this.confirmPassword) {
+      this.message = 'Vui lòng điền đầy đủ thông tin bắt buộc';
       return;
     }
 
-    // 2️⃣ Kiểm tra mật khẩu
     if (this.password !== this.confirmPassword) {
       this.message = 'Mật khẩu xác nhận không khớp';
       return;
     }
 
-    if (this.password.length < 6) {
-      this.message = 'Mật khẩu phải từ 6 ký tự trở lên';
+    if (!this.agreeTerms) {
+      this.message = 'Vui lòng đồng ý với điều khoản sử dụng';
       return;
     }
 
     this.loading = true;
     this.message = '';
 
-    // 3️⃣ Gọi API đăng ký
     this.authService.register(
       this.username,
       this.email,
       this.password,
       this.fullName,
-      this.phone || undefined
+      this.phone,
+      this.idCard
     ).subscribe({
-      next: () => {
-        this.message = 'Đăng ký thành công! Chuyển sang đăng nhập...';
-
-        // 4️⃣ Chuyển sang trang login
+      next: (response) => {
+        this.message = 'Đăng ký thành công! Chuyển hướng đến trang đăng nhập...';
         setTimeout(() => {
           this.router.navigate(['/login']);
-        }, 1500);
+        }, 2000);
       },
-      error: (err: any) => {
+      error: (err) => {
         this.message = err.error?.message || 'Đăng ký thất bại';
         this.loading = false;
       },

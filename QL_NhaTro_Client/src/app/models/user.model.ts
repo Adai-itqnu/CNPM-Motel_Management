@@ -2,11 +2,12 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  passwordHash?: string; // Không nên gửi về frontend
+  passwordHash?: string; 
   fullName: string;
   phone?: string;
   idCard?: string;
-  role: 'admin' | 'tenant';
+  address?: string;
+  role: 'admin' | 'user';
   avatarUrl?: string;
   isActive: boolean;
   createdAt: Date;
@@ -20,14 +21,15 @@ export interface CreateUserDto {
   fullName: string;
   phone?: string;
   idCard?: string;
-  role?: 'admin' | 'tenant';
+  role?: 'admin' | 'user';
 }
 
 export interface UpdateUserDto {
   fullName?: string;
+  email?: string;
   phone?: string;
   idCard?: string;
-  avatarUrl?: string;
+  address?: string;
 }
 
 export interface ChangePasswordDto {
