@@ -92,13 +92,18 @@ namespace QL_NhaTro_Server.Controllers
             Console.WriteLine("No pending booking found, proceeding to create new booking");
 
 
-            // Create booking
+            // Get deposit amount from room (if 0, use room price as default)
+            var depositAmount = room.DepositAmount > 0 ? room.DepositAmount : room.Price;
+            Console.WriteLine($"Deposit amount from room: {depositAmount}");
+
+            // Create booking with deposit amount
             var booking = new Booking
             {
                 Id = Guid.NewGuid().ToString(),
                 UserId = userId,
                 RoomId = dto.RoomId,
                 CheckInDate = dto.CheckInDate,
+                DepositAmount = depositAmount,  // Save deposit amount in booking
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
@@ -107,9 +112,9 @@ namespace QL_NhaTro_Server.Controllers
 
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
+            Console.WriteLine($"Booking created: {booking.Id}, DepositAmount: {booking.DepositAmount}");
 
             // Create VNPAY payment URL
-            var depositAmount = room.DepositAmount;
             var tmnCode = "729I87YR";
             var hashSecret = "ZKPI2R2IFEA4VIA1WMCMI65XQUMQHTWT";
             var returnUrl = "http://localhost:4200/payment/vnpay-return";
@@ -167,5 +172,121 @@ namespace QL_NhaTro_Server.Controllers
 
             return Ok(bookings);
         }
+
+        // POST /api/booking/{id}/check-in
+        [HttpPost("{id}/check-in")]
+        public async Task<IActionResult> CheckIn(string id)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("User not authenticated");
+            }
+
+            var booking = await _db.Bookings
+                .Include(b => b.Room)
+                .Include(b => b.Contract)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (booking == null)
+            {
+                return NotFound(new { message = "Không tìm thấy booking" });
+            }
+
+            // Verify ownership
+            if (booking.UserId != userId)
+            {
+                return Forbid("Bạn không có quyền thực hiện thao tác này");
+            }
+
+            // Verify booking status
+            if (booking.Status != BookingStatus.Approved)
+            {
+                return BadRequest(new { message = "Booking chưa được thanh toán hoặc đã bị hủy" });
+            }
+
+            // Verify contract exists and is Draft
+            if (booking.Contract == null || booking.Contract.Status != ContractStatus.Draft)
+            {
+                return BadRequest(new { message = "Không tìm thấy hợp đồng hoặc hợp đồng không hợp lệ" });
+            }
+
+            // Verify check-in date
+            if (booking.CheckInDate > DateTime.Today)
+            {
+                return BadRequest(new { message = $"Chưa đến ngày nhận phòng ({booking.CheckInDate:dd/MM/yyyy})" });
+            }
+
+            // Activate contract
+            booking.Contract.Status = ContractStatus.Active;
+            booking.Contract.UpdatedAt = DateTime.Now;
+
+            // Update room to Occupied and link contract
+            if (booking.Room != null)
+            {
+                booking.Room.Status = RoomStatus.Occupied;
+                booking.Room.CurrentUserId = userId;
+                booking.Room.CurrentContractId = booking.Contract.Id;
+                booking.Room.UpdatedAt = DateTime.Now;
+            }
+
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = "Nhận phòng thành công! Hợp đồng đã được kích hoạt.",
+                contractId = booking.Contract.Id,
+                roomName = booking.Room?.Name
+            });
+        }
+
+        // GET /api/booking/my-rooms (rooms where user has active contract)
+        [HttpGet("my-rooms")]
+        public async Task<IActionResult> GetMyRooms()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var rooms = await _db.Contracts
+                .Where(c => c.UserId == userId && (c.Status == ContractStatus.Active || c.Status == ContractStatus.Draft))
+                .Include(c => c.Room)
+                    .ThenInclude(r => r.Images)
+                .Include(c => c.Booking)
+                .Select(c => new
+                {
+                    ContractId = c.Id,
+                    ContractStatus = c.Status.ToString(),
+                    StartDate = c.StartDate,
+                    EndDate = c.EndDate,
+                    MonthlyPrice = c.MonthlyPrice,
+                    CanCheckIn = c.Status == ContractStatus.Draft && c.Booking != null && c.Booking.CheckInDate <= DateTime.Today,
+                    CheckInDate = c.Booking != null ? c.Booking.CheckInDate : (DateTime?)null,
+                    BookingId = c.BookingId,
+                    Room = new
+                    {
+                        c.Room.Id,
+                        c.Room.Name,
+                        c.Room.RoomType,
+                        c.Room.Floor,
+                        c.Room.Area,
+                        c.Room.Price,
+                        c.Room.Status,
+                        Images = c.Room.Images.Select(i => new
+                        {
+                            i.Id,
+                            i.ImageUrl,
+                            i.IsPrimary
+                        }).ToList()
+                    }
+                })
+                .ToListAsync();
+
+            return Ok(rooms);
+        }
     }
 }
+

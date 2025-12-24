@@ -1,4 +1,97 @@
-<div class="my-bills">
+<div class="my-bills-container">
+  <div class="page-header">
     <h1>Hóa Đơn Của Tôi</h1>
-    <!-- Danh sách hóa đơn, chi tiết, thanh toán -->
+    <p class="subtitle">Quản lý và thanh toán hóa đơn hàng tháng</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-row" *ngIf="!isLoading && bills.length > 0">
+    <div class="stat-card">
+      <span class="stat-value">{{ bills.length }}</span>
+      <span class="stat-label">Tổng hóa đơn</span>
+    </div>
+    <div class="stat-card pending">
+      <span class="stat-value">{{ pendingCount }}</span>
+      <span class="stat-label">Chưa thanh toán</span>
+    </div>
+    <div class="stat-card paid">
+      <span class="stat-value">{{ paidCount }}</span>
+      <span class="stat-label">Đã thanh toán</span>
+    </div>
+    <div class="stat-card total">
+      <span class="stat-value">{{ formatCurrency(totalPending) }}</span>
+      <span class="stat-label">Cần thanh toán</span>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs" *ngIf="!isLoading && bills.length > 0">
+    <button [class.active]="filterStatus === 'all'" (click)="setFilter('all')">Tất cả</button>
+    <button [class.active]="filterStatus === 'Pending'" (click)="setFilter('Pending')">Chưa thanh toán</button>
+    <button [class.active]="filterStatus === 'Paid'" (click)="setFilter('Paid')">Đã thanh toán</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error && !isLoading">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadBills()">Thử lại</button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && !error && bills.length === 0">
+    <div class="empty-icon">📋</div>
+    <h3>Chưa có hóa đơn nào</h3>
+    <p>Hóa đơn sẽ xuất hiện khi bạn có phòng đang thuê</p>
+  </div>
+
+  <!-- Bills List -->
+  <div class="bills-list" *ngIf="!isLoading && filteredBills.length > 0">
+    <div class="bill-card" *ngFor="let bill of filteredBills">
+      <div class="bill-header">
+        <div class="bill-period">
+          <span class="month">{{ getMonthYear(bill.month, bill.year) }}</span>
+          <span class="room-name">{{ bill.roomName }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass(bill.status)">
+          {{ getStatusLabel(bill.status) }}
+        </span>
+      </div>
+
+      <div class="bill-details">
+        <div class="detail-row">
+          <span class="label">Tiền phòng:</span>
+          <span class="value">{{ formatCurrency(bill.roomPrice) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Tiền điện:</span>
+          <span class="value">{{ formatCurrency(bill.electricityTotal) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Tiền nước:</span>
+          <span class="value">{{ formatCurrency(bill.waterTotal) }}</span>
+        </div>
+        <div class="detail-row" *ngIf="bill.otherFees > 0">
+          <span class="label">Phí khác:</span>
+          <span class="value">{{ formatCurrency(bill.otherFees) }}</span>
+        </div>
+        <div class="detail-row total">
+          <span class="label">Tổng cộng:</span>
+          <span class="value">{{ formatCurrency(bill.totalAmount) }}</span>
+        </div>
+      </div>
+
+      <div class="bill-footer">
+        <div class="dates">
+          <span class="due-date">Hạn thanh toán: {{ formatDate(bill.dueDate) }}</span>
+          <span class="paid-date" *ngIf="bill.paymentDate">Đã thanh toán: {{ formatDate(bill.paymentDate) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

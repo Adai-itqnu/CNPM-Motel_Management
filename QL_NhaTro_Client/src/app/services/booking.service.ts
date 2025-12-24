@@ -1,14 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HttpService } from './http.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class BookingService {
-  private REST_API_SERVER = 'http://localhost:5001/api';
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpService) {}
 
   // Create booking with deposit payment
   createDepositBooking(bookingData: {
@@ -18,12 +16,21 @@ export class BookingService {
     contactEmail: string;
     notes?: string;
   }): Observable<any> {
-
-    return this.http.post(`${this.REST_API_SERVER}/booking/create-deposit`, bookingData);
+    return this.http.post('booking/create-deposit', bookingData);
   }
 
   // Get user's bookings
   getMyBookings(): Observable<any> {
-    return this.http.get(`${this.REST_API_SERVER}/booking/my-bookings`);
+    return this.http.get('booking/my-bookings');
+  }
+
+  // Get user's rooms (with active/draft contracts)
+  getMyRooms(): Observable<any> {
+    return this.http.get('booking/my-rooms');
+  }
+
+  // Check-in to a room
+  checkIn(bookingId: string): Observable<any> {
+    return this.http.post(`booking/${bookingId}/check-in`, {});
   }
 }

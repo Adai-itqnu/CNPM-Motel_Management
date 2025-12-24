@@ -1,0 +1,58 @@
+<div class="vnpay-return-container">
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang xử lý kết quả thanh toán...</p>
+  </div>
+
+  <!-- Success State -->
+  <div class="result-card success" *ngIf="!isLoading && isSuccess">
+    <div class="icon-wrapper success-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h2>Thanh Toán Thành Công!</h2>
+    <p class="message">{{ message }}</p>
+    
+    <div class="transaction-info">
+      <div class="info-row">
+        <span class="label">Mã giao dịch:</span>
+        <span class="value">{{ transactionId }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Số tiền:</span>
+        <span class="value highlight">{{ amount | number:'1.0-0' }} VNĐ</span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="goToMyRooms()">
+        Xem Phòng Của Tôi
+      </button>
+      <button class="btn btn-secondary" (click)="goToDashboard()">
+        Về Trang Chủ
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div class="result-card error" *ngIf="!isLoading && !isSuccess">
+    <div class="icon-wrapper error-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="15" y1="9" x2="9" y2="15"></line>
+        <line x1="9" y1="9" x2="15" y2="15"></line>
+      </svg>
+    </div>
+    <h2>Thanh Toán Thất Bại</h2>
+    <p class="message error-message">{{ message }}</p>
+
+    <div class="actions">
+      <button class="btn btn-primary" (click)="goToDashboard()">
+        Thử Lại
+      </button>
+    </div>
+  </div>
+</div>

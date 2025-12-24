@@ -16,6 +16,9 @@ builder.Services.AddDbContext<MotelManagementDbContext>(options =>
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<VNPayService>();
 
+// Background service for auto-canceling expired bookings
+builder.Services.AddHostedService<BookingCleanupService>();
+
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
 var key = Encoding.UTF8.GetBytes(secretKey!);
 

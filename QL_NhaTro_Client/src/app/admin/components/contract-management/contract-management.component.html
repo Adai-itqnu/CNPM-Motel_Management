@@ -1,4 +1,118 @@
 <div class="contract-management">
+  <div class="page-header">
     <h1>Quản Lý Hợp Đồng</h1>
-    <!-- Danh sách hợp đồng, tạo mới, kết thúc -->
+  </div>
+
+  <!-- Filter -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Trạng thái:</label>
+      <select [(ngModel)]="filterStatus">
+        <option value="all">Tất cả</option>
+        <option value="Draft">Chờ nhận phòng</option>
+        <option value="Active">Đang hoạt động</option>
+        <option value="Expired">Đã hết hạn</option>
+        <option value="Terminated">Đã chấm dứt</option>
+      </select>
+    </div>
+    <button class="btn-refresh" (click)="loadContracts()">🔄 Làm mới</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="!isLoading">
+    <div class="stat-card">
+      <span class="stat-value">{{ contracts.length }}</span>
+      <span class="stat-label">Tổng số</span>
+    </div>
+    <div class="stat-card stat-draft">
+      <span class="stat-value">{{ getDraftCount() }}</span>
+      <span class="stat-label">Chờ nhận phòng</span>
+    </div>
+    <div class="stat-card stat-active">
+      <span class="stat-value">{{ getActiveCount() }}</span>
+      <span class="stat-label">Đang hoạt động</span>
+    </div>
+    <div class="stat-card stat-expired">
+      <span class="stat-value">{{ getExpiredCount() }}</span>
+      <span class="stat-label">Đã hết hạn</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Contracts Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Phòng</th>
+          <th>Khách thuê</th>
+          <th>Liên hệ</th>
+          <th>Ngày bắt đầu</th>
+          <th>Ngày kết thúc</th>
+          <th>Giá thuê</th>
+          <th>Tiền cọc</th>
+          <th>Trạng thái</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let contract of filteredContracts">
+          <td class="room-name">{{ contract.roomName }}</td>
+          <td>
+            <div class="user-info">
+              <span class="user-name">{{ contract.userName }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="contact-info">
+              <span class="email">{{ contract.userEmail }}</span>
+              <span class="phone">{{ contract.userPhone || '-' }}</span>
+            </div>
+          </td>
+          <td>{{ formatDate(contract.startDate) }}</td>
+          <td>
+            <span>{{ formatDate(contract.endDate) }}</span>
+            <span 
+              class="days-remaining" 
+              *ngIf="contract.status === 'Active'"
+              [ngClass]="{'warning': getRemainingDays(contract.endDate) <= 30}">
+              (còn {{ getRemainingDays(contract.endDate) }} ngày)
+            </span>
+          </td>
+          <td class="price">{{ formatCurrency(contract.monthlyPrice) }}/tháng</td>
+          <td class="deposit">{{ formatCurrency(contract.depositAmount) }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(contract.status)">
+              {{ getStatusLabel(contract.status) }}
+            </span>
+          </td>
+          <td class="actions">
+            <button 
+              class="btn-action btn-extend" 
+              *ngIf="contract.status === 'Active' || contract.status === 'Draft'"
+              (click)="extendContract(contract)"
+              title="Gia hạn hợp đồng">
+              ➕
+            </button>
+            <button 
+              class="btn-action btn-terminate" 
+              *ngIf="contract.status === 'Active'"
+              (click)="terminateContract(contract)"
+              title="Chấm dứt hợp đồng">
+              ⏹
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredContracts.length === 0">
+      <p>Không có hợp đồng nào</p>
+    </div>
+  </div>
 </div>

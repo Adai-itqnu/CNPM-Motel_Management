@@ -1,0 +1,101 @@
+<div class="my-rooms-container">
+  <div class="page-header">
+    <h1>Phòng Của Tôi</h1>
+    <p class="subtitle">Quản lý các phòng bạn đang thuê</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Error State -->
+  <div class="error-state" *ngIf="error && !isLoading">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadMyRooms()">Thử lại</button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && !error && rooms.length === 0">
+    <div class="empty-icon">🏠</div>
+    <h3>Bạn chưa thuê phòng nào</h3>
+    <p>Hãy đặt phòng để bắt đầu</p>
+    <a routerLink="/user/dashboard" class="btn btn-primary">Xem Phòng Trống</a>
+  </div>
+
+  <!-- Rooms List -->
+  <div class="rooms-grid" *ngIf="!isLoading && rooms.length > 0">
+    <div class="room-card" *ngFor="let item of rooms">
+      <!-- Room Image -->
+      <div class="room-image">
+        <img [src]="getRoomImage(item.room)" [alt]="item.room.name">
+        <span class="status-badge" [ngClass]="getStatusClass(item.contractStatus)">
+          {{ getStatusLabel(item.contractStatus) }}
+        </span>
+      </div>
+
+      <!-- Room Info -->
+      <div class="room-content">
+        <h3 class="room-name">{{ item.room.name }}</h3>
+        
+        <div class="room-details">
+          <div class="detail-item">
+            <span class="label">Loại phòng:</span>
+            <span class="value">{{ item.room.roomType }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Diện tích:</span>
+            <span class="value">{{ item.room.area }} m²</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Tầng:</span>
+            <span class="value">{{ item.room.floor }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Giá thuê:</span>
+            <span class="value price">{{ item.monthlyPrice | number:'1.0-0' }} VNĐ/tháng</span>
+          </div>
+        </div>
+
+        <!-- Contract Info -->
+        <div class="contract-info">
+          <div class="info-row">
+            <span class="label">Ngày bắt đầu:</span>
+            <span class="value">{{ formatDate(item.startDate) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Ngày kết thúc:</span>
+            <span class="value">{{ formatDate(item.endDate) }}</span>
+          </div>
+          <div class="info-row" *ngIf="item.checkInDate && item.contractStatus === 'Draft'">
+            <span class="label">Ngày nhận phòng:</span>
+            <span class="value highlight">{{ formatDate(item.checkInDate) }}</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="room-actions">
+          <button 
+            class="btn btn-checkin" 
+            *ngIf="item.canCheckIn"
+            [disabled]="checkingIn"
+            (click)="checkIn(item.bookingId)">
+            <span *ngIf="!checkingIn">🔑 Nhận Phòng</span>
+            <span *ngIf="checkingIn">Đang xử lý...</span>
+          </button>
+          
+          <div class="waiting-checkin" *ngIf="item.contractStatus === 'Draft' && !item.canCheckIn">
+            <span class="waiting-icon">⏳</span>
+            <span>Chờ đến ngày {{ formatDate(item.checkInDate!) }} để nhận phòng</span>
+          </div>
+
+          <div class="active-contract" *ngIf="item.contractStatus === 'Active'">
+            <span class="active-icon">✅</span>
+            <span>Đang thuê</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

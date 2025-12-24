@@ -1,5 +1,5 @@
 <div class="room-management">
-     <div class="page-header">
+  <div class="page-header">
     <h1>Quản Lý Phòng</h1>
     <button class="btn btn-primary" (click)="openCreateModal()">
       <span>+</span> Thêm Phòng Mới
@@ -9,9 +9,9 @@
   <!-- Search Section -->
   <div class="search-section">
     <div class="search-box">
-      <input 
-        type="text" 
-        [(ngModel)]="searchText" 
+      <input
+        type="text"
+        [(ngModel)]="searchText"
         placeholder="Tìm kiếm theo tên phòng..."
         (keyup.enter)="loadRooms()"
       />
@@ -31,8 +31,12 @@
   <div class="room-grid" *ngIf="!loading">
     <div class="room-card" *ngFor="let room of rooms">
       <div class="room-image">
-        <img 
-          [src]="room.images && room.images.length > 0 ? 'http://localhost:5001' + room.images[0].imageUrl : 'https://via.placeholder.com/400x300?text=No+Image'" 
+        <img
+          [src]="
+            room.images && room.images.length > 0
+              ? 'http://localhost:5001' + room.images[0].imageUrl
+              : 'https://via.placeholder.com/400x300?text=No+Image'
+          "
           [alt]="room.name"
           onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'"
         />
@@ -45,9 +49,7 @@
         <h3>{{ room.name }}</h3>
         <p class="room-type">{{ room.roomType || 'Phòng trọ' }}</p>
         <p class="room-price">{{ room.price | number }}đ/tháng</p>
-        <p class="room-details">
-          📍 Tầng {{ room.floor }} | 📐 {{ room.area }}m²
-        </p>
+        <p class="room-details">📍 Tầng {{ room.floor }} | 📐 {{ room.area }}m²</p>
         <div class="room-amenities">
           <span *ngFor="let amenity of room.amenities.slice(0, 3)" class="amenity-tag">
             {{ amenity }}
@@ -73,19 +75,11 @@
 
   <!-- Pagination -->
   <div class="pagination" *ngIf="totalPages > 1">
-    <button 
-      [disabled]="currentPage === 1" 
-      (click)="changePage(currentPage - 1)"
-    >
-      ← Trước
-    </button>
+    <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">← Trước</button>
 
     <span>Trang {{ currentPage }} / {{ totalPages }}</span>
 
-    <button 
-      [disabled]="currentPage === totalPages" 
-      (click)="changePage(currentPage + 1)"
-    >
+    <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
       Sau →
     </button>
   </div>
@@ -104,15 +98,9 @@
     <div class="modal-body">
       <!-- View Mode -->
       <div *ngIf="modalMode === 'view' && selectedRoom">
-        <div class="detail-row">
-          <strong>Tên phòng:</strong> {{ selectedRoom.name }}
-        </div>
-        <div class="detail-row">
-          <strong>Loại phòng:</strong> {{ selectedRoom.roomType }}
-        </div>
-        <div class="detail-row">
-          <strong>Giá:</strong> {{ selectedRoom.price | number }}đ/tháng
-        </div>
+        <div class="detail-row"><strong>Tên phòng:</strong> {{ selectedRoom.name }}</div>
+        <div class="detail-row"><strong>Loại phòng:</strong> {{ selectedRoom.roomType }}</div>
+        <div class="detail-row"><strong>Giá:</strong> {{ selectedRoom.price | number }}đ/tháng</div>
         <div class="detail-row">
           <strong>Tiền cọc:</strong> {{ selectedRoom.depositAmount | number }}đ
         </div>
@@ -122,12 +110,8 @@
         <div class="detail-row">
           <strong>Giá nước:</strong> {{ selectedRoom.waterPrice | number }}đ/m³
         </div>
-        <div class="detail-row">
-          <strong>Diện tích:</strong> {{ selectedRoom.area }}m²
-        </div>
-        <div class="detail-row">
-          <strong>Tầng:</strong> {{ selectedRoom.floor }}
-        </div>
+        <div class="detail-row"><strong>Diện tích:</strong> {{ selectedRoom.area }}m²</div>
+        <div class="detail-row"><strong>Tầng:</strong> {{ selectedRoom.floor }}</div>
         <div class="detail-row">
           <strong>Trạng thái:</strong> {{ getStatusText(selectedRoom.status) }}
         </div>
@@ -164,12 +148,23 @@
         <div class="form-row">
           <div class="form-group">
             <label>Giá thuê *</label>
-            <input type="number" [(ngModel)]="roomForm.price" name="price" required />
+            <input
+              type="number"
+              [(ngModel)]="roomForm.price"
+              name="price"
+              required
+              (ngModelChange)="onPriceChange($event)"
+            />
           </div>
 
           <div class="form-group">
-            <label>Tiền cọc</label>
-            <input type="number" [(ngModel)]="roomForm.depositAmount" name="depositAmount" />
+            <label>Tiền cọc (mặc định = giá thuê)</label>
+            <input
+              type="number"
+              [(ngModel)]="roomForm.depositAmount"
+              name="depositAmount"
+              [placeholder]="'Mặc định: ' + roomForm.price"
+            />
           </div>
         </div>
 
@@ -205,27 +200,27 @@
         <!-- Image Upload Section (Chỉ hiện khi tạo mới) -->
         <div class="form-group" *ngIf="modalMode === 'create'">
           <label>Hình ảnh phòng (Tối đa {{ maxImages }} ảnh)</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            multiple 
+          <input
+            type="file"
+            accept="image/*"
+            multiple
             (change)="onFileSelected($event)"
             #fileInput
-            style="display: none;"
+            style="display: none"
           />
-          <button 
-            type="button" 
-            class="btn-upload" 
+          <button
+            type="button"
+            class="btn-upload"
             (click)="fileInput.click()"
             [disabled]="selectedFiles.length >= maxImages"
           >
             📷 Chọn ảnh ({{ selectedFiles.length }}/{{ maxImages }})
           </button>
-          
+
           <!-- Preview selected images -->
           <div class="image-preview" *ngIf="selectedFiles.length > 0">
             <div *ngFor="let file of selectedFiles; let i = index" class="preview-item">
-              <img [src]="getFilePreview(file)" [alt]="file.name">
+              <img [src]="getFilePreview(file)" [alt]="file.name" />
               <button type="button" class="btn-remove-preview" (click)="removeSelectedFile(i)">
                 ✖
               </button>
@@ -237,9 +232,9 @@
         <div class="form-group">
           <label>Tiện ích</label>
           <div class="amenities-input">
-            <input 
-              type="text" 
-              [(ngModel)]="newAmenity" 
+            <input
+              type="text"
+              [(ngModel)]="newAmenity"
               name="newAmenity"
               placeholder="Nhập tiện ích..."
               (keyup.enter)="addAmenityToForm(); $event.preventDefault()"
@@ -247,10 +242,7 @@
             <button type="button" (click)="addAmenityToForm()">Thêm</button>
           </div>
           <div class="amenities-list">
-            <span 
-              *ngFor="let amenity of roomForm.amenities; let i = index" 
-              class="amenity-tag"
-            >
+            <span *ngFor="let amenity of roomForm.amenities; let i = index" class="amenity-tag">
               {{ amenity }}
               <button type="button" (click)="removeAmenityFromForm(i)">✖</button>
             </span>

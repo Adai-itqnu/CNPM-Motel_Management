@@ -165,7 +165,8 @@ namespace QL_NhaTro_Server.Controllers
                 Name = dto.Name,
                 RoomType = dto.RoomType,
                 Price = dto.Price,
-                DepositAmount = dto.DepositAmount ?? (dto.Price * 1), // Mặc định = 1 tháng tiền phòng
+                // Mặc định tiền cọc = 1 tháng tiền phòng nếu không nhập hoặc = 0
+                DepositAmount = (dto.DepositAmount.HasValue && dto.DepositAmount.Value > 0) ? dto.DepositAmount.Value : dto.Price,
                 ElectricityPrice = dto.ElectricityPrice ?? 3500,
                 WaterPrice = dto.WaterPrice ?? 20000,
                 Description = dto.Description,

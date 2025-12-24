@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using QL_NhaTro_Server.Models;
 
@@ -11,9 +12,11 @@ using QL_NhaTro_Server.Models;
 namespace QL_NhaTro_Server.Migrations
 {
     [DbContext(typeof(MotelManagementDbContext))]
-    partial class MotelManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251224004030_AddBookingIdToContract")]
+    partial class AddBookingIdToContract
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

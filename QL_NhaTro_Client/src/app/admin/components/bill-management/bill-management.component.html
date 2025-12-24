@@ -1,4 +1,151 @@
 <div class="bill-management">
+  <div class="page-header">
     <h1>Quản Lý Hóa Đơn</h1>
-    <!-- Danh sách hóa đơn, nhập chỉ số điện nước -->
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'monthly'"
+      (click)="switchTab('monthly')">
+      📄 Hóa Đơn Hàng Tháng
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'deposit'"
+      (click)="switchTab('deposit')">
+      💰 Tiền Cọc
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Monthly Bills Tab -->
+  <div class="tab-content" *ngIf="!isLoading && activeTab === 'monthly'">
+    <!-- Filters -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Tháng:</label>
+        <select [(ngModel)]="filterMonth">
+          <option [value]="0">Tất cả</option>
+          <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">Tháng {{ m }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Năm:</label>
+        <select [(ngModel)]="filterYear">
+          <option [value]="2024">2024</option>
+          <option [value]="2025">2025</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Trạng thái:</label>
+        <select [(ngModel)]="filterStatus">
+          <option value="all">Tất cả</option>
+          <option value="Pending">Chưa thanh toán</option>
+          <option value="Paid">Đã thanh toán</option>
+          <option value="Overdue">Quá hạn</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Bills Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Phòng</th>
+            <th>Khách thuê</th>
+            <th>Kỳ</th>
+            <th>Điện</th>
+            <th>Nước</th>
+            <th>Tiền phòng</th>
+            <th>Tổng</th>
+            <th>Trạng thái</th>
+            <th>Hạn TT</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let bill of filteredBills">
+            <td class="room-name">{{ bill.roomName }}</td>
+            <td>{{ bill.userName }}</td>
+            <td>{{ bill.month }}/{{ bill.year }}</td>
+            <td>
+              <span class="detail-text">{{ bill.electricityNewIndex - bill.electricityOldIndex }} kWh</span>
+              <span class="detail-amount">{{ formatCurrency(bill.electricityTotal) }}</span>
+            </td>
+            <td>
+              <span class="detail-text">{{ bill.waterNewIndex - bill.waterOldIndex }} m³</span>
+              <span class="detail-amount">{{ formatCurrency(bill.waterTotal) }}</span>
+            </td>
+            <td>{{ formatCurrency(bill.roomPrice) }}</td>
+            <td class="total-amount">{{ formatCurrency(bill.totalAmount) }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(bill.status)">
+                {{ getStatusLabel(bill.status) }}
+              </span>
+            </td>
+            <td>{{ formatDate(bill.dueDate) }}</td>
+            <td class="actions">
+              <button 
+                class="btn-action btn-paid" 
+                *ngIf="bill.status === 'Pending'"
+                (click)="updateBillStatus(bill, 'Paid')"
+                title="Đánh dấu đã thanh toán">
+                ✓
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="filteredBills.length === 0">
+        <p>Không có hóa đơn nào</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit Payments Tab -->
+  <div class="tab-content" *ngIf="!isLoading && activeTab === 'deposit'">
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Phòng</th>
+            <th>Khách</th>
+            <th>Số tiền</th>
+            <th>Phương thức</th>
+            <th>Mã GD</th>
+            <th>Trạng thái</th>
+            <th>Ngày TT</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let deposit of deposits">
+            <td class="room-name">{{ deposit.roomName }}</td>
+            <td>{{ deposit.userName }}</td>
+            <td class="total-amount">{{ formatCurrency(deposit.amount) }}</td>
+            <td>{{ deposit.paymentMethod }}</td>
+            <td class="txn-id">{{ deposit.providerTxnId || '-' }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(deposit.status)">
+                {{ deposit.status }}
+              </span>
+            </td>
+            <td>{{ formatDate(deposit.paymentDate) }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="empty-state" *ngIf="deposits.length === 0">
+        <p>Không có giao dịch tiền cọc nào</p>
+      </div>
+    </div>
+  </div>
 </div>

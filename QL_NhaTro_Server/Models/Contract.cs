@@ -5,10 +5,13 @@ namespace QL_NhaTro_Server.Models
 {
     public enum ContractStatus
     {
-        Active,
+        Draft,      // Created after payment, waiting for check-in
+        Active,     // After check-in
         Expired,
-        Terminated
+        Terminated,
+        Cancelled   // If no check-in by check-in date
     }
+
 
     [Table("Contracts")]
     public class Contract
@@ -24,6 +27,10 @@ namespace QL_NhaTro_Server.Models
         [Required]
         [MaxLength(50)]
         public string UserId { get; set; } = string.Empty;
+
+        [MaxLength(50)]
+        public string? BookingId { get; set; }  // Reference to booking
+
 
         [Required]
         [Column(TypeName = "date")]
@@ -60,6 +67,10 @@ namespace QL_NhaTro_Server.Models
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; } = null!;
+
+        [ForeignKey("BookingId")]
+        public virtual Booking? Booking { get; set; }
+
 
         public virtual ICollection<Bill> Bills { get; set; } = new List<Bill>();
     }

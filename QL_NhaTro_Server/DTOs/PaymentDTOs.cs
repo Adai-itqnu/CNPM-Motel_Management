@@ -11,8 +11,6 @@ namespace QL_NhaTro_Server.DTOs
         public string UserId { get; set; } = string.Empty;
         public string RoomId { get; set; } = string.Empty;
         public decimal DepositAmount { get; set; }
-        public DateTime? StartDate { get; set; }
-        public DateTime? EndDate { get; set; }
         public string ReturnUrl { get; set; } = string.Empty;
     }
     

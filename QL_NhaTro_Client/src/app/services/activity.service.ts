@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HttpService } from './http.service';
 
 export interface RecentActivity {
   type: string;
@@ -16,14 +16,12 @@ export interface RecentActivity {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ActivityService {
-  private apiUrl = 'http://localhost:5001/api/statistics';
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpService) {}
 
   getRecent(limit: number = 5): Observable<RecentActivity[]> {
-    return this.http.get<RecentActivity[]>(`${this.apiUrl}/recent-activities?limit=${limit}`);
+    return this.http.get<RecentActivity[]>(`statistics/recent-activities?limit=${limit}`);
   }
 }

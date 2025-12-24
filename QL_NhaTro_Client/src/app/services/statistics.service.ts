@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { HttpService } from './http.service';
 
 export interface DashboardStats {
   totalRooms: number;
@@ -28,22 +28,20 @@ export interface MonthlyRevenue {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StatisticsService {
-  private apiUrl = 'http://localhost:5001/api/statistics';
-
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpService) {}
 
   getSummary(): Observable<DashboardStats> {
-    return this.http.get<DashboardStats>(`${this.apiUrl}/summary`);
+    return this.http.get<DashboardStats>('statistics/summary');
   }
 
   getRoomStatus(): Observable<RoomStatus> {
-    return this.http.get<RoomStatus>(`${this.apiUrl}/room-status`);
+    return this.http.get<RoomStatus>('statistics/room-status');
   }
 
   getRevenueChart(months: number = 6): Observable<RevenueChart> {
-    return this.http.get<RevenueChart>(`${this.apiUrl}/revenue-chart?months=${months}`);
+    return this.http.get<RevenueChart>(`statistics/revenue-chart?months=${months}`);
   }
 }

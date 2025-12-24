@@ -1,4 +1,86 @@
-<div class="booking-approval">
-    <h1>Phê Duyệt Đặt Phòng</h1>
-    <!-- Danh sách yêu cầu đặt phòng, phê duyệt/từ chối -->
+<div class="booking-management">
+  <div class="page-header">
+    <h1>Quản Lý Đặt Phòng</h1>
+  </div>
+
+  <!-- Filter -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Trạng thái:</label>
+      <select [(ngModel)]="filterStatus">
+        <option value="all">Tất cả</option>
+        <option value="Pending">Chờ thanh toán</option>
+        <option value="Approved">Đã thanh toán</option>
+        <option value="Cancelled">Đã hủy</option>
+      </select>
+    </div>
+    <button class="btn-refresh" (click)="loadBookings()">🔄 Làm mới</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Bookings Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Phòng</th>
+          <th>Khách hàng</th>
+          <th>Liên hệ</th>
+          <th>Ngày nhận phòng</th>
+          <th>Tiền cọc</th>
+          <th>TT Cọc</th>
+          <th>Trạng thái</th>
+          <th>Thời gian đặt</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let booking of filteredBookings">
+          <td class="room-name">{{ booking.roomName }}</td>
+          <td>
+            <div class="user-info">
+              <span class="user-name">{{ booking.userName }}</span>
+            </div>
+          </td>
+          <td>
+            <div class="contact-info">
+              <span class="email">{{ booking.userEmail }}</span>
+              <span class="phone">{{ booking.userPhone || '-' }}</span>
+            </div>
+          </td>
+          <td>{{ formatDate(booking.checkInDate) }}</td>
+          <td class="deposit-amount">{{ formatCurrency(booking.depositAmount) }}</td>
+          <td>
+            <span class="deposit-badge" [ngClass]="'deposit-' + booking.depositStatus.toLowerCase()">
+              {{ getDepositStatusLabel(booking.depositStatus) }}
+            </span>
+          </td>
+          <td>
+            <span class="status-badge" [ngClass]="getStatusClass(booking.status)">
+              {{ getStatusLabel(booking.status) }}
+            </span>
+          </td>
+          <td class="date-time">{{ formatDateTime(booking.createdAt) }}</td>
+          <td class="actions">
+            <button 
+              class="btn-action btn-cancel" 
+              *ngIf="booking.status === 'Pending' || booking.status === 'Approved'"
+              (click)="cancelBooking(booking)"
+              title="Hủy booking">
+              ✕
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredBookings.length === 0">
+      <p>Không có booking nào</p>
+    </div>
+  </div>
 </div>

@@ -38,12 +38,6 @@ namespace QL_NhaTro_Server.Models
         [Column(TypeName = "date")]
         public DateTime CheckInDate { get; set; }
 
-        [Column(TypeName = "date")]
-        public DateTime? StartDate { get; set; }
-
-        [Column(TypeName = "date")]
-        public DateTime? EndDate { get; set; }
-
         [Column(TypeName = "text")]
         public string? Message { get; set; }
 
@@ -76,5 +70,7 @@ namespace QL_NhaTro_Server.Models
         public virtual User User { get; set; } = null!;
 
         public virtual ICollection<Payment> Payments { get; set; } = new List<Payment>();
+        
+        public virtual Contract? Contract { get; set; }  // One-to-one with Contract
     }
 }

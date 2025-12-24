@@ -1,26 +1,54 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { User } from '../models/user.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class HttpService {
-
-  private REST_API_SERVER = 'http://localhost:5001/api';
-
-  private httpOptions = {
-    headers: new HttpHeaders({
-      'Content-Type': 'application/json'
-    })
-  };
+  private readonly API_URL = 'http://localhost:5001/api';
 
   constructor(private http: HttpClient) {}
 
+  // Getter để các service khác có thể truy cập API URL
+  get apiUrl(): string {
+    return this.API_URL;
+  }
+
+  // HTTP GET
+  get<T>(endpoint: string, params?: HttpParams): Observable<T> {
+    return this.http.get<T>(`${this.API_URL}/${endpoint}`, { params });
+  }
+
+  // HTTP POST
+  post<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.post<T>(`${this.API_URL}/${endpoint}`, body);
+  }
+
+  // HTTP PUT
+  put<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.put<T>(`${this.API_URL}/${endpoint}`, body);
+  }
+
+  // HTTP PATCH
+  patch<T>(endpoint: string, body: any): Observable<T> {
+    return this.http.patch<T>(`${this.API_URL}/${endpoint}`, body);
+  }
+
+  // HTTP DELETE
+  delete<T>(endpoint: string): Observable<T> {
+    return this.http.delete<T>(`${this.API_URL}/${endpoint}`);
+  }
+
+  // POST với FormData (cho upload file)
+  postFormData<T>(endpoint: string, formData: FormData): Observable<T> {
+    return this.http.post<T>(`${this.API_URL}/${endpoint}`, formData);
+  }
+
+  // ========== LEGACY METHODS (for backward compatibility) ==========
+
   login(usernameOrEmail: string, password: string): Observable<any> {
-    const url = `${this.REST_API_SERVER}/Auth/login`;
-    return this.http.post<any>(url, { usernameOrEmail, password }, this.httpOptions);
+    return this.post('Auth/login', { usernameOrEmail, password });
   }
 
   register(
@@ -31,24 +59,13 @@ export class HttpService {
     phone?: string,
     idCard?: string
   ): Observable<any> {
-    const url = `${this.REST_API_SERVER}/Auth/register`;
-    return this.http.post<any>(url, {
+    return this.post('Auth/register', {
       username,
       email,
       password,
       fullName,
       phone,
-      idCard
-    }, this.httpOptions);
-  }
-
-  getUsers(): Observable<User[]> {
-    const url = `${this.REST_API_SERVER}/Users`;
-    return this.http.get<User[]>(url, this.httpOptions);
-  }
-
-  createUser(user: User): Observable<User> {
-    const url = `${this.REST_API_SERVER}/Users`;
-    return this.http.post<User>(url, user, this.httpOptions);
+      idCard,
+    });
   }
 }

@@ -1,0 +1,77 @@
+<div class="payment-history-container">
+  <div class="page-header">
+    <h1>Lịch Sử Thanh Toán</h1>
+    <p class="subtitle">Xem các giao dịch thanh toán của bạn</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="!isLoading && payments.length > 0">
+    <div class="stat-card">
+      <span class="stat-value">{{ payments.length }}</span>
+      <span class="stat-label">Tổng giao dịch</span>
+    </div>
+    <div class="stat-card deposit">
+      <span class="stat-value">{{ depositPayments.length }}</span>
+      <span class="stat-label">Tiền cọc</span>
+    </div>
+    <div class="stat-card bill">
+      <span class="stat-value">{{ billPayments.length }}</span>
+      <span class="stat-label">Hóa đơn</span>
+    </div>
+    <div class="stat-card total">
+      <span class="stat-value">{{ formatCurrency(totalAmount) }}</span>
+      <span class="stat-label">Tổng thanh toán</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error && !isLoading">
+    <p>{{ error }}</p>
+    <button class="btn btn-primary" (click)="loadPayments()">Thử lại</button>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && !error && payments.length === 0">
+    <div class="empty-icon">💳</div>
+    <h3>Chưa có giao dịch nào</h3>
+    <p>Lịch sử thanh toán sẽ xuất hiện sau khi bạn thực hiện giao dịch</p>
+  </div>
+
+  <!-- Payments List -->
+  <div class="payments-list" *ngIf="!isLoading && payments.length > 0">
+    <div class="payment-card" *ngFor="let payment of payments">
+      <div class="payment-icon" [ngClass]="getPaymentTypeClass(payment.paymentType)">
+        <span *ngIf="payment.paymentType === 'Deposit'">🏠</span>
+        <span *ngIf="payment.paymentType !== 'Deposit'">📄</span>
+      </div>
+      
+      <div class="payment-info">
+        <div class="payment-main">
+          <span class="payment-type">{{ getPaymentTypeLabel(payment.paymentType) }}</span>
+          <span class="payment-room">{{ payment.roomName }}</span>
+          <span class="payment-desc" *ngIf="payment.billMonth">
+            Tháng {{ payment.billMonth }}/{{ payment.billYear }}
+          </span>
+        </div>
+        <div class="payment-meta">
+          <span class="payment-date">{{ formatDate(payment.paymentDate) }}</span>
+          <span class="payment-method">{{ payment.paymentMethod }}</span>
+          <span class="txn-id" *ngIf="payment.providerTxnId">Mã GD: {{ payment.providerTxnId }}</span>
+        </div>
+      </div>
+
+      <div class="payment-right">
+        <span class="payment-amount">{{ formatCurrency(payment.amount) }}</span>
+        <span class="status-badge" [ngClass]="getStatusClass(payment.status)">
+          {{ getStatusLabel(payment.status) }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
