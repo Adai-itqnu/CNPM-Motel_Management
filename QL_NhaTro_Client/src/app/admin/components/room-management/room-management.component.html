@@ -231,20 +231,34 @@
 
         <div class="form-group">
           <label>Tiện ích</label>
+          
+          <!-- Predefined Amenities -->
+          <div class="predefined-amenities">
+            <div *ngFor="let amenity of predefinedAmenities" 
+                 class="predefined-amenity"
+                 [class.selected]="roomForm.amenities?.includes(amenity)"
+                 (click)="toggleAmenity(amenity)">
+              {{ amenity }}
+            </div>
+          </div>
+          
+          <!-- Custom Amenity Input -->
           <div class="amenities-input">
             <input
               type="text"
               [(ngModel)]="newAmenity"
               name="newAmenity"
-              placeholder="Nhập tiện ích..."
+              placeholder="Nhập tiện ích khác..."
               (keyup.enter)="addAmenityToForm(); $event.preventDefault()"
             />
             <button type="button" (click)="addAmenityToForm()">Thêm</button>
           </div>
+          
+          <!-- Selected Amenities -->
           <div class="amenities-list">
             <span *ngFor="let amenity of roomForm.amenities; let i = index" class="amenity-tag">
               {{ amenity }}
-              <button type="button" (click)="removeAmenityFromForm(i)">✖</button>
+              <button type="button" (click)="$event.stopPropagation(); removeAmenityFromForm(i)">✖</button>
             </span>
           </div>
         </div>

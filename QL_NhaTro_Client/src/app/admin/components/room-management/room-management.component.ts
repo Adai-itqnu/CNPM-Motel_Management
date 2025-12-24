@@ -60,6 +60,13 @@ export class RoomManagementComponent implements OnInit {
     { value: 'studio', label: 'Phòng studio' },
   ];
 
+  // Predefined amenities
+  predefinedAmenities = [
+    'Wifi', 'Điều hòa', 'Tủ lạnh', 'Máy giặt', 'Tủ quần áo', 
+    'Bàn làm việc', 'Tivi', 'Tủ lạnh mini', 'Máy sấy tóc',
+    'Bình nóng lạnh', 'Bếp', 'Máy nước nóng'
+  ];
+
   constructor(private roomService: RoomService) {}
 
   ngOnInit() {
@@ -184,6 +191,21 @@ export class RoomManagementComponent implements OnInit {
 
   removeAmenityFromForm(index: number) {
     this.roomForm.amenities?.splice(index, 1);
+  }
+
+  toggleAmenity(amenity: string) {
+    if (!this.roomForm.amenities) {
+      this.roomForm.amenities = [];
+    }
+    
+    const index = this.roomForm.amenities.indexOf(amenity);
+    if (index === -1) {
+      // Add if not exists
+      this.roomForm.amenities.push(amenity);
+    } else {
+      // Remove if exists
+      this.roomForm.amenities.splice(index, 1);
+    }
   }
 
   onSubmit() {

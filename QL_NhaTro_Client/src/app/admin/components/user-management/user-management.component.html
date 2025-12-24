@@ -38,10 +38,10 @@
           <th>Họ tên</th>
           <th>Email</th>
           <th>Số điện thoại</th>
+          <th>CCCD</th>
           <th>Vai trò</th>
           <th>Trạng thái</th>
           <th>Ngày tạo</th>
-          <th>Hành động</th>
         </tr>
       </thead>
       <tbody>
@@ -50,6 +50,7 @@
           <td>{{ user.fullName }}</td>
           <td>{{ user.email }}</td>
           <td>{{ user.phone || 'Chưa có' }}</td>
+          <td>{{ user.idCard || 'Chưa có' }}</td>
           <td>
             <span class="badge" [ngClass]="getRoleBadge(user.role)">
               {{ getRoleText(user.role) }}
@@ -58,23 +59,18 @@
           <td>
             <span class="badge" [ngClass]="getStatusBadge(user.isActive)">
               {{ getStatusText(user.isActive) }}
+              <button 
+                *ngIf="user.role !== 'Admin'"
+                class="btn-toggle"
+                [class.btn-lock]="user.isActive"
+                [class.btn-unlock]="!user.isActive"
+                (click)="$event.stopPropagation(); toggleStatus(user)"
+              >
+                {{ user.isActive ? '🔒' : '🔓' }}
+              </button>
             </span>
           </td>
           <td>{{ formatDate(user.createdAt) }}</td>
-          <td>
-            <button 
-              *ngIf="user.role !== 'Admin'"
-              class="btn-toggle"
-              [class.btn-lock]="user.isActive"
-              [class.btn-unlock]="!user.isActive"
-              (click)="toggleStatus(user)"
-            >
-              {{ user.isActive ? '🔒 Khóa' : '🔓 Mở' }}
-            </button>
-            <span *ngIf="user.role === 'Admin'" class="no-action">
-              -
-            </span>
-          </td>
         </tr>
       </tbody>
     </table>
