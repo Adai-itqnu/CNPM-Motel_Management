@@ -54,7 +54,7 @@ namespace QL_NhaTro_Server.Controllers
                 Id = Guid.NewGuid().ToString(),
                 Username = dto.Username,
                 Email = dto.Email,
-                PasswordHash = HashPassword(dto.Password), // SHA256 - nhanh!
+                PasswordHash = HashPassword(dto.Password), // SHA256 - cực nhanh!
                 FullName = dto.FullName,
                 Phone = dto.Phone,
                 IdCard = dto.IdCard,

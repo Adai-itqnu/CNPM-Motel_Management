@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 /* Reset */
 * {
   margin: 0;
@@ -6,7 +8,7 @@
 }
 
 /* Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
 
 /* Login Wrapper */
 .login-wrapper {
@@ -53,7 +55,8 @@
   background: linear-gradient(135deg, #5048e5 0%, #3730a3 100%);
   position: relative;
   padding: 48px;
-  display: none; /* Hidden on mobile */
+  display: none;
+  /* Hidden on mobile */
   color: white;
 }
 
@@ -388,8 +391,13 @@
   background: #e2e8f0;
 }
 
-.divider::before { left: 0; }
-.divider::after { right: 0; }
+.divider::before {
+  left: 0;
+}
+
+.divider::after {
+  right: 0;
+}
 
 .divider span {
   display: inline-block;
@@ -448,6 +456,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -465,7 +474,7 @@
   .form-section {
     padding: 32px 24px;
   }
-  
+
   .form-title {
     font-size: 26px;
   }
@@ -475,16 +484,16 @@
   .login-wrapper {
     padding: 16px;
   }
-  
+
   .login-card {
     min-height: auto;
     border-radius: 16px;
   }
-  
+
   .form-section {
     padding: 28px 20px;
   }
-  
+
   .form-title {
     font-size: 24px;
   }

@@ -56,8 +56,18 @@ export class UserService {
     return this.http.put(`users/${id}`, data);
   }
 
+  // Cập nhật thông tin của user hiện tại (không cần admin)
+  updateMyProfile(data: any): Observable<any> {
+    return this.http.put('user/profile', data);
+  }
+
   // Khóa/mở tài khoản
   toggleUserStatus(id: string): Observable<any> {
     return this.http.patch(`users/${id}/toggle-status`, {});
+  }
+
+  // Upload avatar
+  uploadAvatar(formData: FormData): Observable<any> {
+    return this.http.postFormData('user/upload-avatar', formData);
   }
 }

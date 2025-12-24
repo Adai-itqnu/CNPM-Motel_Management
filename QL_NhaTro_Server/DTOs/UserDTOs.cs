@@ -48,10 +48,12 @@ namespace QL_NhaTro_Server.DTOs
         [MaxLength(150)]
         public string? Email { get; set; }
 
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
         [Phone]
-        public string? Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
-        public string? IdCard { get; set; }
+        [Required(ErrorMessage = "Số CCCD/CMND là bắt buộc")]
+        public string IdCard { get; set; } = string.Empty;
 
         public string? Address { get; set; }
     }

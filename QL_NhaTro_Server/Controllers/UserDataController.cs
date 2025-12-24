@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QL_NhaTro_Server.DTOs;
 using QL_NhaTro_Server.Models;
 using System.Security.Claims;
 
@@ -94,6 +95,126 @@ namespace QL_NhaTro_Server.Controllers
                 .ToListAsync();
 
             return Ok(payments);
+        }
+
+        // POST /api/user/upload-avatar - Upload avatar for current user
+        [HttpPost("upload-avatar")]
+        public async Task<IActionResult> UploadAvatar(IFormFile file)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest(new { message = "Vui lòng chọn file ảnh" });
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(extension))
+            {
+                return BadRequest(new { message = "Chỉ chấp nhận file ảnh (.jpg, .jpeg, .png, .gif)" });
+            }
+
+            // Validate file size (max 5MB)
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                return BadRequest(new { message = "File ảnh không được vượt quá 5MB" });
+            }
+
+            try
+            {
+                // Create uploads directory if not exists
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                if (!Directory.Exists(uploadsPath))
+                {
+                    Directory.CreateDirectory(uploadsPath);
+                }
+
+                // Generate unique filename
+                var fileName = $"{userId}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Update user avatar URL
+                var user = await _db.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "Không tìm thấy người dùng" });
+                }
+
+                // Delete old avatar file if exists
+                if (!string.IsNullOrEmpty(user.AvatarUrl))
+                {
+                    var oldFileName = Path.GetFileName(user.AvatarUrl);
+                    var oldFilePath = Path.Combine(uploadsPath, oldFileName);
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                }
+
+                user.AvatarUrl = $"/uploads/avatars/{fileName}";
+                user.UpdatedAt = DateTime.Now;
+                await _db.SaveChangesAsync();
+
+                return Ok(new 
+                { 
+                    message = "Cập nhật avatar thành công",
+                    avatarUrl = user.AvatarUrl
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi upload avatar: " + ex.Message });
+            }
+        }
+
+        // PUT /api/user/profile - Update current user's profile
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = await _db.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { message = "Không tìm thấy người dùng" });
+            }
+
+            // Update fields
+            if (!string.IsNullOrEmpty(dto.FullName))
+                user.FullName = dto.FullName;
+            
+            if (!string.IsNullOrEmpty(dto.Email))
+                user.Email = dto.Email;
+            
+            if (!string.IsNullOrEmpty(dto.Phone))
+                user.Phone = dto.Phone;
+            
+            if (!string.IsNullOrEmpty(dto.IdCard))
+                user.IdCard = dto.IdCard;
+            
+            if (dto.Address != null)
+                user.Address = dto.Address;
+
+            user.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return Ok(new { message = "Cập nhật thông tin thành công" });
         }
     }
 }
