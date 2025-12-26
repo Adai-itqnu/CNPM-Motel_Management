@@ -123,13 +123,27 @@
     <div class="modal-body" *ngIf="selectedRoom">
       <div class="modal-image">
         <img 
-          [src]="selectedRoom.images && selectedRoom.images.length > 0 ? 'http://localhost:5001' + selectedRoom.images[0].imageUrl : 'https://via.placeholder.com/600x400?text=No+Image'" 
+          [src]="getCurrentImageUrl()" 
           [alt]="selectedRoom.name"
         >
+        <!-- Image Navigation Buttons -->
+        <div class="image-nav" *ngIf="selectedRoom.images && selectedRoom.images.length > 1">
+          <button class="nav-btn prev" (click)="prevImage($event)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <span class="image-counter">{{ currentImageIndex + 1 }} / {{ selectedRoom.images.length }}</span>
+          <button class="nav-btn next" (click)="nextImage($event)">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       
       <div class="modal-info">
-        <span class="badge-success">Thanh toán thành công</span>
+        <span class="badge-available">Còn trống</span>
         
         <h2>{{ selectedRoom.name }} - {{ selectedRoom.roomType }}</h2>
         <p class="modal-subtitle">Khu A • Tầng {{ selectedRoom.floor }}</p>

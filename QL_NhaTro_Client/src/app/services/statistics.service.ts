@@ -27,6 +27,15 @@ export interface MonthlyRevenue {
   revenue: number;
 }
 
+export interface RoomDetails {
+  total: number;
+  occupied: number;
+  available: number;
+  maintenance: number;
+  reserved: number;
+  occupancyRate: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -41,7 +50,12 @@ export class StatisticsService {
     return this.http.get<RoomStatus>('statistics/room-status');
   }
 
+  getRoomDetails(): Observable<RoomDetails> {
+    return this.http.get<RoomDetails>('statistics/room-details');
+  }
+
   getRevenueChart(months: number = 6): Observable<RevenueChart> {
     return this.http.get<RevenueChart>(`statistics/revenue-chart?months=${months}`);
   }
 }
+

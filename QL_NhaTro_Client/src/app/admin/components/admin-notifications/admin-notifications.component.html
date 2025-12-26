@@ -1,0 +1,89 @@
+<div class="admin-notifications">
+  <div class="page-header">
+    <h1>📢 Gửi Thông Báo</h1>
+    <p class="subtitle">Gửi thông báo đến người thuê trong hệ thống</p>
+  </div>
+
+  <div class="notifications-layout">
+    <!-- Send Notification Form -->
+    <div class="send-form-card">
+      <h2>✉️ Soạn thông báo mới</h2>
+      
+      <form (ngSubmit)="sendNotification()">
+        <div class="form-group">
+          <label>Người nhận <span class="required">*</span></label>
+          <select [(ngModel)]="notification.targetType" name="targetType" (change)="onTargetChange()">
+            <option value="all">Tất cả người dùng</option>
+            <option value="user">Chọn người dùng</option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="notification.targetType === 'user'">
+          <label>Chọn người nhận <span class="required">*</span></label>
+          <select [(ngModel)]="notification.userId" name="userId">
+            <option value="">-- Chọn người dùng --</option>
+            <option *ngFor="let user of users" [value]="user.id">
+              {{ user.fullName }} ({{ user.email }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Loại thông báo</label>
+          <select [(ngModel)]="notification.type" name="type">
+            <option value="System">Hệ thống</option>
+            <option value="Payment">Thanh toán</option>
+            <option value="Warning">Cảnh báo</option>
+            <option value="Admin">Từ quản trị</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tiêu đề <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="notification.title" name="title" placeholder="Nhập tiêu đề thông báo...">
+        </div>
+
+        <div class="form-group">
+          <label>Nội dung <span class="required">*</span></label>
+          <textarea [(ngModel)]="notification.content" name="content" rows="5" placeholder="Nhập nội dung thông báo..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Link đính kèm (tùy chọn)</label>
+          <input type="text" [(ngModel)]="notification.link" name="link" placeholder="/user/my-bills">
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="resetForm()">Hủy</button>
+          <button type="submit" class="btn-primary" [disabled]="isSending">
+            {{ isSending ? 'Đang gửi...' : '📤 Gửi thông báo' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Recent Sent Notifications -->
+    <div class="recent-notifications-card">
+      <h2>📋 Thông báo đã gửi gần đây</h2>
+      
+      <div class="loading-mini" *ngIf="isLoadingHistory">
+        <div class="spinner-mini"></div>
+      </div>
+
+      <div class="notification-list" *ngIf="!isLoadingHistory">
+        <div class="notification-item" *ngFor="let notif of recentNotifications">
+          <div class="notif-icon">{{ getTypeIcon(notif.type) }}</div>
+          <div class="notif-content">
+            <strong>{{ notif.title }}</strong>
+            <p>{{ notif.content }}</p>
+            <small>Gửi đến: {{ notif.recipientName || 'Tất cả' }} • {{ formatDate(notif.createdAt) }}</small>
+          </div>
+        </div>
+
+        <div class="empty-state" *ngIf="recentNotifications.length === 0">
+          <p>Chưa có thông báo nào được gửi</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

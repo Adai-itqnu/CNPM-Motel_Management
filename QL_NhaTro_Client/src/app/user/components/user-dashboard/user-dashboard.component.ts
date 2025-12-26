@@ -32,6 +32,7 @@ export class UserDashboardComponent implements OnInit {
   // Room Detail Modal
   selectedRoom: any = null;
   showRoomDetail = false;
+  currentImageIndex = 0;
 
   // Booking Modal
   showBookingModal = false;
@@ -79,12 +80,36 @@ export class UserDashboardComponent implements OnInit {
 
   viewRoomDetail(room: any) {
     this.selectedRoom = room;
+    this.currentImageIndex = 0; // Reset về ảnh đầu tiên
     this.showRoomDetail = true;
   }
 
   closeRoomDetail() {
     this.showRoomDetail = false;
     this.selectedRoom = null;
+    this.currentImageIndex = 0;
+  }
+
+  // Image navigation
+  getCurrentImageUrl(): string {
+    if (!this.selectedRoom?.images || this.selectedRoom.images.length === 0) {
+      return 'https://via.placeholder.com/600x400?text=No+Image';
+    }
+    return 'http://localhost:5001' + this.selectedRoom.images[this.currentImageIndex].imageUrl;
+  }
+
+  prevImage(event: Event) {
+    event.stopPropagation();
+    if (this.selectedRoom?.images && this.selectedRoom.images.length > 0) {
+      this.currentImageIndex = (this.currentImageIndex - 1 + this.selectedRoom.images.length) % this.selectedRoom.images.length;
+    }
+  }
+
+  nextImage(event: Event) {
+    event.stopPropagation();
+    if (this.selectedRoom?.images && this.selectedRoom.images.length > 0) {
+      this.currentImageIndex = (this.currentImageIndex + 1) % this.selectedRoom.images.length;
+    }
   }
 
   // Open booking modal

@@ -18,6 +18,7 @@ namespace QL_NhaTro_Server.Models
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Bill> Bills { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -174,6 +175,27 @@ namespace QL_NhaTro_Server.Models
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Notification entity configuration
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.Property(e => e.Type)
+                    .HasConversion<string>();
+                entity.HasIndex(e => e.UserId);
+                entity.HasIndex(e => e.IsRead);
+                entity.HasIndex(e => e.CreatedAt);
+                entity.HasIndex(e => new { e.UserId, e.IsRead }); // Composite for unread count
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Sender)
+                    .WithMany()
+                    .HasForeignKey(e => e.SenderId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

@@ -7,14 +7,22 @@ interface Bill {
   roomName: string;
   month: number;
   year: number;
+  daysInMonth: number;
+  daysRented: number;
+  electricityOldIndex: number;
+  electricityNewIndex: number;
   electricityTotal: number;
+  waterOldIndex: number;
+  waterNewIndex: number;
   waterTotal: number;
   roomPrice: number;
   otherFees: number;
   totalAmount: number;
   status: string;
+  isSent: boolean;
   dueDate: string;
   paymentDate: string | null;
+  notes: string | null;
   createdAt: string;
 }
 
@@ -30,6 +38,7 @@ export class MyBillsComponent implements OnInit {
   isLoading = true;
   error = '';
   filterStatus = 'all';
+  isPayingBillId: string | null = null;
 
   private apiUrl = 'http://localhost:5001/api';
 
@@ -45,6 +54,7 @@ export class MyBillsComponent implements OnInit {
     
     this.http.get<Bill[]>(`${this.apiUrl}/user/my-bills`).subscribe({
       next: (data) => {
+        // Backend đã filter chỉ trả về bills đã gửi (isSent = true)
         this.bills = data;
         this.isLoading = false;
       },
@@ -73,8 +83,31 @@ export class MyBillsComponent implements OnInit {
     return this.bills.filter(b => b.status === 'Pending').reduce((sum, b) => sum + b.totalAmount, 0);
   }
 
+  payBill(bill: Bill): void {
+    this.isPayingBillId = bill.id;
+    
+    this.http.post<{ paymentUrl: string }>(`${this.apiUrl}/payment/bill/${bill.id}/vnpay`, {}).subscribe({
+      next: (res) => {
+        if (res.paymentUrl) {
+          window.location.href = res.paymentUrl;
+        }
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Có lỗi xảy ra khi tạo thanh toán');
+        this.isPayingBillId = null;
+      }
+    });
+  }
+
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('vi-VN').format(amount) + ' VNĐ';
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+  }
+
+  formatShortCurrency(amount: number): string {
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + ' tr';
+    }
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
   }
 
   formatDate(dateStr: string | null): string {
@@ -83,11 +116,21 @@ export class MyBillsComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    return status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán';
+    const labels: { [key: string]: string } = {
+      'Pending': 'Chưa thanh toán',
+      'Paid': 'Đã thanh toán',
+      'Overdue': 'Quá hạn'
+    };
+    return labels[status] || status;
   }
 
   getStatusClass(status: string): string {
-    return status === 'Paid' ? 'status-paid' : 'status-pending';
+    const classes: { [key: string]: string } = {
+      'Pending': 'status-pending',
+      'Paid': 'status-paid',
+      'Overdue': 'status-overdue'
+    };
+    return classes[status] || '';
   }
 
   getMonthYear(month: number, year: number): string {

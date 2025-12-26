@@ -1,34 +1,46 @@
 <div class="my-bills-container">
   <div class="page-header">
-    <h1>Hóa Đơn Của Tôi</h1>
+    <h1>📄 Hóa Đơn Của Tôi</h1>
     <p class="subtitle">Quản lý và thanh toán hóa đơn hàng tháng</p>
   </div>
 
   <!-- Stats Cards -->
   <div class="stats-row" *ngIf="!isLoading && bills.length > 0">
     <div class="stat-card">
-      <span class="stat-value">{{ bills.length }}</span>
-      <span class="stat-label">Tổng hóa đơn</span>
+      <span class="stat-icon">📋</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ bills.length }}</span>
+        <span class="stat-label">Tổng hóa đơn</span>
+      </div>
     </div>
     <div class="stat-card pending">
-      <span class="stat-value">{{ pendingCount }}</span>
-      <span class="stat-label">Chưa thanh toán</span>
+      <span class="stat-icon">⏳</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ pendingCount }}</span>
+        <span class="stat-label">Chưa thanh toán</span>
+      </div>
     </div>
     <div class="stat-card paid">
-      <span class="stat-value">{{ paidCount }}</span>
-      <span class="stat-label">Đã thanh toán</span>
+      <span class="stat-icon">✅</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ paidCount }}</span>
+        <span class="stat-label">Đã thanh toán</span>
+      </div>
     </div>
     <div class="stat-card total">
-      <span class="stat-value">{{ formatCurrency(totalPending) }}</span>
-      <span class="stat-label">Cần thanh toán</span>
+      <span class="stat-icon">💰</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatShortCurrency(totalPending) }}</span>
+        <span class="stat-label">Cần thanh toán</span>
+      </div>
     </div>
   </div>
 
   <!-- Filter Tabs -->
   <div class="filter-tabs" *ngIf="!isLoading && bills.length > 0">
-    <button [class.active]="filterStatus === 'all'" (click)="setFilter('all')">Tất cả</button>
-    <button [class.active]="filterStatus === 'Pending'" (click)="setFilter('Pending')">Chưa thanh toán</button>
-    <button [class.active]="filterStatus === 'Paid'" (click)="setFilter('Paid')">Đã thanh toán</button>
+    <button [class.active]="filterStatus === 'all'" (click)="setFilter('all')">📋 Tất cả</button>
+    <button [class.active]="filterStatus === 'Pending'" (click)="setFilter('Pending')">⏳ Chưa thanh toán</button>
+    <button [class.active]="filterStatus === 'Paid'" (click)="setFilter('Paid')">✅ Đã thanh toán</button>
   </div>
 
   <!-- Loading -->
@@ -52,45 +64,78 @@
 
   <!-- Bills List -->
   <div class="bills-list" *ngIf="!isLoading && filteredBills.length > 0">
-    <div class="bill-card" *ngFor="let bill of filteredBills">
+    <div class="bill-card" *ngFor="let bill of filteredBills" [class.unpaid]="bill.status === 'Pending'">
       <div class="bill-header">
         <div class="bill-period">
           <span class="month">{{ getMonthYear(bill.month, bill.year) }}</span>
-          <span class="room-name">{{ bill.roomName }}</span>
+          <span class="room-name">🏠 {{ bill.roomName }}</span>
         </div>
         <span class="status-badge" [ngClass]="getStatusClass(bill.status)">
           {{ getStatusLabel(bill.status) }}
         </span>
       </div>
 
-      <div class="bill-details">
-        <div class="detail-row">
-          <span class="label">Tiền phòng:</span>
-          <span class="value">{{ formatCurrency(bill.roomPrice) }}</span>
+      <div class="bill-body">
+        <!-- Left: Details -->
+        <div class="bill-details">
+          <div class="detail-section">
+            <h4>⚡ Điện</h4>
+            <div class="meter-info">
+              <span>{{ bill.electricityOldIndex }} → {{ bill.electricityNewIndex }}</span>
+              <span class="usage">({{ bill.electricityNewIndex - bill.electricityOldIndex }} kWh)</span>
+            </div>
+            <span class="amount">{{ formatCurrency(bill.electricityTotal) }}</span>
+          </div>
+          
+          <div class="detail-section">
+            <h4>💧 Nước</h4>
+            <div class="meter-info">
+              <span>{{ bill.waterOldIndex }} → {{ bill.waterNewIndex }}</span>
+              <span class="usage">({{ bill.waterNewIndex - bill.waterOldIndex }} m³)</span>
+            </div>
+            <span class="amount">{{ formatCurrency(bill.waterTotal) }}</span>
+          </div>
+          
+          <div class="detail-section">
+            <h4>🏠 Tiền phòng</h4>
+            <span class="amount">{{ formatCurrency(bill.roomPrice) }}</span>
+            <small *ngIf="bill.daysRented < bill.daysInMonth" class="pro-rata">
+              ({{ bill.daysRented }}/{{ bill.daysInMonth }} ngày)
+            </small>
+          </div>
+          
+          <div class="detail-section" *ngIf="bill.otherFees > 0">
+            <h4>📝 Phí khác</h4>
+            <span class="amount">{{ formatCurrency(bill.otherFees) }}</span>
+          </div>
         </div>
-        <div class="detail-row">
-          <span class="label">Tiền điện:</span>
-          <span class="value">{{ formatCurrency(bill.electricityTotal) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Tiền nước:</span>
-          <span class="value">{{ formatCurrency(bill.waterTotal) }}</span>
-        </div>
-        <div class="detail-row" *ngIf="bill.otherFees > 0">
-          <span class="label">Phí khác:</span>
-          <span class="value">{{ formatCurrency(bill.otherFees) }}</span>
-        </div>
-        <div class="detail-row total">
-          <span class="label">Tổng cộng:</span>
-          <span class="value">{{ formatCurrency(bill.totalAmount) }}</span>
+
+        <!-- Right: Total & Action -->
+        <div class="bill-summary">
+          <div class="total-section">
+            <span class="total-label">Tổng cộng</span>
+            <span class="total-amount">{{ formatCurrency(bill.totalAmount) }}</span>
+          </div>
+          
+          <div class="due-date">
+            <span *ngIf="bill.status === 'Pending'">⏰ Hạn: {{ formatDate(bill.dueDate) }}</span>
+            <span *ngIf="bill.status === 'Paid'">✅ Đã TT: {{ formatDate(bill.paymentDate) }}</span>
+          </div>
+
+          <button 
+            class="btn-pay" 
+            *ngIf="bill.status === 'Pending'"
+            (click)="payBill(bill)"
+            [disabled]="isPayingBillId === bill.id">
+            <span *ngIf="isPayingBillId !== bill.id">💳 Thanh toán VNPay</span>
+            <span *ngIf="isPayingBillId === bill.id">Đang xử lý...</span>
+          </button>
         </div>
       </div>
 
-      <div class="bill-footer">
-        <div class="dates">
-          <span class="due-date">Hạn thanh toán: {{ formatDate(bill.dueDate) }}</span>
-          <span class="paid-date" *ngIf="bill.paymentDate">Đã thanh toán: {{ formatDate(bill.paymentDate) }}</span>
-        </div>
+      <div class="bill-notes" *ngIf="bill.notes">
+        <span class="notes-label">📝 Ghi chú:</span>
+        <span class="notes-text">{{ bill.notes }}</span>
       </div>
     </div>
   </div>

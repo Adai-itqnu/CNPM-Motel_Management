@@ -101,6 +101,42 @@ namespace QL_NhaTro_Server.Controllers
             }
         }
 
+        // GET /api/statistics/room-details - Số lượng phòng thực tế cho biểu đồ
+        [HttpGet("room-details")]
+        public async Task<IActionResult> GetRoomDetails()
+        {
+            try
+            {
+                var stats = await _db.Rooms
+                    .GroupBy(r => 1)
+                    .Select(g => new
+                    {
+                        Total = g.Count(),
+                        Occupied = g.Count(r => r.Status == RoomStatus.Occupied),
+                        Available = g.Count(r => r.Status == RoomStatus.Available),
+                        Maintenance = g.Count(r => r.Status == RoomStatus.Maintenance),
+                        Reserved = g.Count(r => r.Status == RoomStatus.Reserved)
+                    })
+                    .FirstOrDefaultAsync();
+
+                return Ok(new
+                {
+                    total = stats?.Total ?? 0,
+                    occupied = stats?.Occupied ?? 0,
+                    available = stats?.Available ?? 0,
+                    maintenance = stats?.Maintenance ?? 0,
+                    reserved = stats?.Reserved ?? 0,
+                    occupancyRate = stats?.Total > 0 
+                        ? Math.Round((double)(stats?.Occupied ?? 0) / stats.Total * 100, 1) 
+                        : 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi lấy chi tiết phòng", error = ex.Message });
+            }
+        }
+
         // GET /api/statistics/revenue-chart - OPTIMIZED: 1 query với GROUP BY thay vì loop
         [HttpGet("revenue-chart")]
         public async Task<IActionResult> GetRevenueChart([FromQuery] int months = 6)

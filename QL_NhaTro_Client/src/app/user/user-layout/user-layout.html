@@ -16,6 +16,41 @@
         Đăng xuất
       </button>
       
+      <!-- Notification Bell -->
+      <div class="notification-bell" (click)="toggleNotificationDropdown()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+        </svg>
+        <span class="notification-badge" *ngIf="unreadCount > 0">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+        
+        <!-- Notification Dropdown -->
+        <div class="notification-dropdown" *ngIf="showNotificationDropdown" (click)="$event.stopPropagation()">
+          <div class="notification-header">
+            <span>Thông báo</span>
+            <button class="mark-all-read" (click)="markAllAsRead()" *ngIf="unreadCount > 0">Đánh dấu tất cả đã đọc</button>
+          </div>
+          <div class="notification-list">
+            <div *ngIf="notifications.length === 0" class="no-notifications">
+              Không có thông báo mới
+            </div>
+            <div *ngFor="let notification of notifications" 
+                 class="notification-item" 
+                 [class.unread]="!notification.isRead"
+                 (click)="viewNotificationDetail(notification)">
+              <span class="notification-icon">{{ getNotificationIcon(notification.type) }}</span>
+              <div class="notification-content">
+                <strong>{{ notification.title }}</strong>
+                <p class="notification-preview">{{ notification.content }}</p>
+                <small>{{ notification.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+              </div>
+            </div>
+          </div>
+          <div class="notification-footer">
+            <button (click)="navigateTo('/user/notifications')">Xem tất cả</button>
+          </div>
+        </div>
+      </div>
+      
       <!-- User Profile Dropdown -->
       <div class="user-profile" (click)="toggleDropdown()">
         <span class="user-name">{{ currentUser?.fullName || 'User' }}</span>
@@ -70,4 +105,28 @@
   <footer class="user-footer">
     <p>© 2024 Motel App System. All rights reserved.</p>
   </footer>
+</div>
+
+<!-- Notification Detail Modal -->
+<div class="modal-overlay" *ngIf="selectedNotification" (click)="closeNotificationModal()">
+  <div class="notification-modal" (click)="$event.stopPropagation()">
+    <button class="btn-close" (click)="closeNotificationModal()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+    <div class="notification-modal-header">
+      <span class="modal-icon">{{ getNotificationIcon(selectedNotification.type) }}</span>
+      <h3>{{ selectedNotification.title }}</h3>
+    </div>
+    <div class="notification-modal-body">
+      <p>{{ selectedNotification.content }}</p>
+    </div>
+    <div class="notification-modal-footer">
+      <small>{{ selectedNotification.createdAt | date:'dd/MM/yyyy HH:mm' }}</small>
+      <button *ngIf="selectedNotification.link" class="btn-link" (click)="navigateTo(selectedNotification.link)">
+        Xem chi tiết →
+      </button>
+    </div>
+  </div>
 </div>

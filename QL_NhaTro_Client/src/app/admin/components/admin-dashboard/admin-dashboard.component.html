@@ -1,98 +1,222 @@
-<!-- Search Bar -->
-<div class="search-container">
-  <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-  </svg>
-  <input type="text" placeholder="Tìm kiếm phòng, khách hàng..." />
-</div>
-
-<!-- Overview Header -->
-<div class="section-header">
-  <div>
-    <p class="date-text">{{ currentDate }}</p>
-    <h2>Tổng quan</h2>
-  </div>
-  <button class="refresh-button" (click)="refreshData()">Làm mới</button>
-</div>
-
-<!-- Error State -->
-<div *ngIf="error" class="error-state">
-  <p>{{ error }}</p>
-  <button (click)="refreshData()">Thử lại</button>
-</div>
-
-<!-- Skeleton Loading -->
-<div *ngIf="isLoading" class="skeleton-grid">
-  <div class="skeleton-card" *ngFor="let i of [1,2,3]">
-    <div class="skeleton-icon"></div>
-    <div class="skeleton-text short"></div>
-    <div class="skeleton-text long"></div>
-  </div>
-</div>
-
-<!-- Stats Cards -->
-<div *ngIf="!isLoading" class="stats-grid">
-  <div class="stat-card" *ngFor="let stat of stats">
-    <div class="stat-icon">
-      <span class="material-icons">{{ stat.icon }}</span>
+<div class="dashboard-wrapper">
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="welcome-content">
+      <h1>👋 Xin chào, {{ currentUser?.fullName || 'Admin' }}!</h1>
+      <p>{{ currentDate }}</p>
     </div>
-    <div class="stat-content">
-      <p class="stat-label">{{ stat.label }}</p>
-      <h3 class="stat-value">{{ stat.value }}</h3>
-      <div *ngIf="stat.trend" class="stat-trend" [class.trend-up]="stat.trendPositive" [class.trend-down]="!stat.trendPositive">
-        <span>{{ stat.trend }}</span>
+    <button class="refresh-btn" (click)="refreshData()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+      </svg>
+      Làm mới
+    </button>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-state">
+    <span class="error-icon">⚠️</span>
+    <p>{{ error }}</p>
+    <button (click)="refreshData()">Thử lại</button>
+  </div>
+
+  <!-- Loading Skeleton -->
+  <div *ngIf="isLoading" class="skeleton-container">
+    <div class="skeleton-stats">
+      <div class="skeleton-card" *ngFor="let i of [1,2,3,4]"></div>
+    </div>
+    <div class="skeleton-charts">
+      <div class="skeleton-chart"></div>
+      <div class="skeleton-chart"></div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && !error" class="dashboard-content">
+    
+    <!-- Stats Cards Row -->
+    <div class="stats-row">
+      <!-- Total Rooms -->
+      <div class="stat-card blue">
+        <div class="stat-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Tổng phòng</span>
+          <span class="stat-value">{{ roomDetails.total }}</span>
+        </div>
+        <div class="stat-footer">
+          <span class="stat-rate">{{ roomDetails.occupancyRate }}% đã thuê</span>
+        </div>
+      </div>
+
+      <!-- Occupied Rooms -->
+      <div class="stat-card purple">
+        <div class="stat-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Đang cho thuê</span>
+          <span class="stat-value">{{ roomDetails.occupied }}</span>
+        </div>
+        <div class="stat-footer">
+          <span class="stat-change positive">📈 Ổn định</span>
+        </div>
+      </div>
+
+      <!-- Available Rooms -->
+      <div class="stat-card green">
+        <div class="stat-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Còn trống</span>
+          <span class="stat-value">{{ roomDetails.available }}</span>
+        </div>
+        <div class="stat-footer">
+          <span>Sẵn sàng cho thuê</span>
+        </div>
+      </div>
+
+      <!-- Monthly Revenue -->
+      <div class="stat-card orange">
+        <div class="stat-icon">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Doanh thu tháng</span>
+          <span class="stat-value">{{ formatCurrency(monthlyRevenue) }}</span>
+        </div>
+        <div class="stat-footer">
+          <span class="stat-change positive">📈 +12% so với tháng trước</span>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Charts Section -->
-<div class="charts-section">
-  
-
-  <!-- Donut Chart & Trend -->
-  <div class="charts-row">
-    <div class="chart-card">
-      <h3>Trạng thái phòng</h3>
-      <div class="donut-container">
-        <svg width="180" height="180" viewBox="0 0 180 180">
-          <defs>
-            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#667eea;stop-opacity:1"></stop>
-              <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1"></stop>
-            </linearGradient>
-            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style="stop-color:#10b981;stop-opacity:1"></stop>
-              <stop offset="100%" style="stop-color:#059669;stop-opacity:1"></stop>
-            </linearGradient>
-          </defs>
-          <circle cx="90" cy="90" r="70" fill="none" stroke="#f1f5f9" stroke-width="30"></circle>
-          <circle cx="90" cy="90" r="70" fill="none" stroke="url(#gradient1)" stroke-width="30" 
-                  [attr.stroke-dasharray]="roomStatus.occupied + ' ' + (100 - roomStatus.occupied)" transform="rotate(-90 90 90)"></circle>
-          <circle cx="90" cy="90" r="70" fill="none" stroke="url(#gradient2)" stroke-width="30" 
-                  [attr.stroke-dasharray]="roomStatus.available + ' ' + (100 - roomStatus.available)" 
-                  [attr.transform]="'rotate(' + (roomStatus.occupied * 3.6 - 90) + ' 90 90)'"></circle>
-          <text x="90" y="85" text-anchor="middle" font-size="28" font-weight="700" fill="#1e293b">
-            {{ roomStatus.total }}
-          </text>
-          <text x="90" y="105" text-anchor="middle" font-size="12" fill="#64748b">
-            Tổng phòng
-          </text>
-        </svg>
-        <div class="legend">
-          <div class="legend-item">
-            <span class="legend-color occupied"></span>
-            <span>Đã thuê ({{ roomStatus.occupied }}%)</span>
-          </div>
-          <div class="legend-item">
-            <span class="legend-color available"></span>
-            <span>Còn trống ({{ roomStatus.available }}%)</span>
+    <!-- Charts Row -->
+    <div class="charts-row">
+      <!-- Room Status Pie Chart -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Trạng thái phòng</h3>
+        </div>
+        <div class="pie-chart-container">
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <defs>
+              <linearGradient id="occupiedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#667eea"></stop>
+                <stop offset="100%" style="stop-color:#764ba2"></stop>
+              </linearGradient>
+              <linearGradient id="availableGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#10b981"></stop>
+                <stop offset="100%" style="stop-color:#059669"></stop>
+              </linearGradient>
+              <linearGradient id="maintenanceGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#f59e0b"></stop>
+                <stop offset="100%" style="stop-color:#d97706"></stop>
+              </linearGradient>
+              <linearGradient id="reservedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#3b82f6"></stop>
+                <stop offset="100%" style="stop-color:#2563eb"></stop>
+              </linearGradient>
+            </defs>
+            <circle cx="100" cy="100" r="80" fill="none" stroke="#f1f5f9" stroke-width="35"></circle>
+            
+            <!-- Occupied slice -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="url(#occupiedGrad)" stroke-width="35" 
+                    [attr.stroke-dasharray]="getSliceDashArray(roomDetails.occupied)"
+                    stroke-dashoffset="0" transform="rotate(-90 100 100)"
+                    style="transition: stroke-dasharray 0.5s ease"></circle>
+            
+            <!-- Available slice -->
+            <circle cx="100" cy="100" r="80" fill="none" stroke="url(#availableGrad)" stroke-width="35"
+                    [attr.stroke-dasharray]="getSliceDashArray(roomDetails.available)"
+                    [attr.stroke-dashoffset]="getSliceOffset(roomDetails.occupied)"
+                    transform="rotate(-90 100 100)"
+                    style="transition: stroke-dasharray 0.5s ease"></circle>
+            
+            <!-- Center text -->
+            <text x="100" y="95" text-anchor="middle" font-size="32" font-weight="700" fill="#1e293b">
+              {{ roomDetails.total }}
+            </text>
+            <text x="100" y="115" text-anchor="middle" font-size="12" fill="#64748b">
+              phòng
+            </text>
+          </svg>
+          
+          <div class="pie-legend">
+            <div class="legend-item">
+              <span class="legend-dot occupied"></span>
+              <span class="legend-text">Đang thuê</span>
+              <span class="legend-value">{{ roomDetails.occupied }}</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot available"></span>
+              <span class="legend-text">Còn trống</span>
+              <span class="legend-value">{{ roomDetails.available }}</span>
+            </div>
+            <div class="legend-item" *ngIf="roomDetails.maintenance > 0">
+              <span class="legend-dot maintenance"></span>
+              <span class="legend-text">Bảo trì</span>
+              <span class="legend-value">{{ roomDetails.maintenance }}</span>
+            </div>
+            <div class="legend-item" *ngIf="roomDetails.reserved > 0">
+              <span class="legend-dot reserved"></span>
+              <span class="legend-text">Đã đặt</span>
+              <span class="legend-value">{{ roomDetails.reserved }}</span>
+            </div>
           </div>
         </div>
       </div>
 
-      
+      <!-- Revenue Bar Chart -->
+      <div class="chart-card wide">
+        <div class="chart-header">
+          <h3>Doanh thu 6 tháng gần nhất</h3>
+        </div>
+        <div class="bar-chart-container">
+          <div class="bar-chart">
+            <div class="bar-wrapper" *ngFor="let month of revenueData">
+              <div class="bar" [style.height.%]="getBarHeight(month.revenue)">
+                <span class="bar-value">{{ formatShortCurrency(month.revenue) }}</span>
+              </div>
+              <span class="bar-label">{{ month.monthName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h3>⚡ Thao tác nhanh</h3>
+      <div class="action-buttons">
+        <button class="action-btn" routerLink="/admin/bills">
+          <span class="action-icon">📄</span>
+          <span>Tạo hóa đơn</span>
+        </button>
+        <button class="action-btn" routerLink="/admin/bookings">
+          <span class="action-icon">📅</span>
+          <span>Duyệt đặt phòng</span>
+        </button>
+        <button class="action-btn" routerLink="/admin/rooms">
+          <span class="action-icon">🏠</span>
+          <span>Quản lý phòng</span>
+        </button>
+        <button class="action-btn" routerLink="/admin/notifications">
+          <span class="action-icon">📢</span>
+          <span>Gửi thông báo</span>
+        </button>
+      </div>
+    </div>
+
   </div>
 </div>
-

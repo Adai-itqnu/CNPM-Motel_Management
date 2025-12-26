@@ -414,6 +414,58 @@
   width: 100%;
   border-radius: 16px;
   object-fit: cover;
+  max-height: 400px;
+}
+
+/* Image Navigation */
+.image-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.nav-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #7C3AED;
+  color: white;
+}
+
+.nav-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.image-counter {
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  min-width: 60px;
+  text-align: center;
+}
+
+.badge-available {
+  background: #d1fae5;
+  color: #065f46;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 16px;
 }
 
 .modal-info {

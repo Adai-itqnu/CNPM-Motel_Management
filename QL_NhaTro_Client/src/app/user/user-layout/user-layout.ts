@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { NotificationService } from '../../services/notification.service';
+import { Notification } from '../../models/notification.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-user-layout',
@@ -10,14 +13,22 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './user-layout.html',
   styleUrl: './user-layout.css'
 })
-export class UserLayoutComponent implements OnInit {
+export class UserLayoutComponent implements OnInit, OnDestroy {
   currentUser: any = null;
   userInitials: string = '';
   showDropdown: boolean = false;
+  
+  // Notification
+  showNotificationDropdown: boolean = false;
+  unreadCount: number = 0;
+  notifications: Notification[] = [];
+  selectedNotification: Notification | null = null;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -25,6 +36,20 @@ export class UserLayoutComponent implements OnInit {
     if (this.currentUser?.fullName) {
       this.userInitials = this.getInitials(this.currentUser.fullName);
     }
+
+    // Subscribe to unread count
+    this.subscriptions.push(
+      this.notificationService.unreadCount$.subscribe(count => {
+        this.unreadCount = count;
+      })
+    );
+
+    // Load initial unread count
+    this.notificationService.refreshUnreadCount();
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 
   getInitials(fullName: string): string {
@@ -37,10 +62,74 @@ export class UserLayoutComponent implements OnInit {
 
   toggleDropdown() {
     this.showDropdown = !this.showDropdown;
+    this.showNotificationDropdown = false;
+  }
+
+  toggleNotificationDropdown() {
+    this.showNotificationDropdown = !this.showNotificationDropdown;
+    this.showDropdown = false;
+    
+    if (this.showNotificationDropdown && this.notifications.length === 0) {
+      this.loadNotifications();
+    }
+  }
+
+  loadNotifications() {
+    this.notificationService.getNotifications(1, 5).subscribe({
+      next: (res) => {
+        this.notifications = res.notifications;
+      },
+      error: (err) => console.error('Error loading notifications:', err)
+    });
+  }
+
+  viewNotificationDetail(notification: Notification) {
+    // Mark as read
+    if (!notification.isRead) {
+      this.notificationService.markAsRead(notification.id).subscribe();
+      notification.isRead = true;
+    }
+    
+    // Show modal with full content
+    this.selectedNotification = notification;
+    this.showNotificationDropdown = false;
+  }
+
+  closeNotificationModal() {
+    this.selectedNotification = null;
+  }
+
+  markAsRead(notification: Notification) {
+    if (!notification.isRead) {
+      this.notificationService.markAsRead(notification.id).subscribe();
+      notification.isRead = true;
+    }
+    
+    if (notification.link) {
+      this.showNotificationDropdown = false;
+      this.router.navigate([notification.link]);
+    }
+  }
+
+  markAllAsRead() {
+    this.notificationService.markAllAsRead().subscribe(() => {
+      this.notifications.forEach(n => n.isRead = true);
+    });
+  }
+
+  getNotificationIcon(type: string): string {
+    switch (type) {
+      case 'Payment': return '💰';
+      case 'Warning': return '⚠️';
+      case 'Admin': return '📢';
+      default: return '🔔';
+    }
   }
 
   navigateTo(path: string) {
     this.showDropdown = false;
+    this.showNotificationDropdown = false;
+    this.selectedNotification = null;
     this.router.navigate([path]);
   }
 
@@ -49,3 +138,4 @@ export class UserLayoutComponent implements OnInit {
     this.router.navigate(['/login']);
   }
 }
+

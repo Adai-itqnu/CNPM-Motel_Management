@@ -31,7 +31,7 @@ namespace QL_NhaTro_Server.Controllers
 
             var bills = await _db.Bills
                 .Include(b => b.Room)
-                .Where(b => b.UserId == userId)
+                .Where(b => b.UserId == userId && b.IsSent) // Chỉ lấy hóa đơn đã gửi
                 .OrderByDescending(b => b.Year)
                 .ThenByDescending(b => b.Month)
                 .Select(b => new
@@ -40,14 +40,22 @@ namespace QL_NhaTro_Server.Controllers
                     RoomName = b.Room.Name,
                     b.Month,
                     b.Year,
+                    b.DaysInMonth,
+                    b.DaysRented,
+                    b.ElectricityOldIndex,
+                    b.ElectricityNewIndex,
                     b.ElectricityTotal,
+                    b.WaterOldIndex,
+                    b.WaterNewIndex,
                     b.WaterTotal,
                     b.RoomPrice,
                     b.OtherFees,
                     b.TotalAmount,
                     Status = b.Status.ToString(),
+                    b.IsSent,
                     b.DueDate,
                     b.PaymentDate,
+                    b.Notes,
                     b.CreatedAt
                 })
                 .ToListAsync();

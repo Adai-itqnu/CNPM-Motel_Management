@@ -12,6 +12,8 @@ interface Bill {
   userName: string;
   month: number;
   year: number;
+  daysInMonth: number;
+  daysRented: number;
   electricityOldIndex: number;
   electricityNewIndex: number;
   electricityPrice: number;
@@ -24,6 +26,7 @@ interface Bill {
   otherFees: number;
   totalAmount: number;
   status: string;
+  isSent: boolean;
   dueDate: string;
   paymentDate: string | null;
   notes: string | null;
@@ -45,6 +48,13 @@ interface DepositPayment {
   createdAt: string;
 }
 
+interface UpdateMetersDto {
+  electricityNewIndex: number;
+  waterNewIndex: number;
+  otherFees: number;
+  notes: string;
+}
+
 @Component({
   selector: 'app-bill-management',
   standalone: true,
@@ -62,8 +72,26 @@ export class BillManagementComponent implements OnInit {
 
   // Filter
   filterStatus = 'all';
+  filterSent = 'all';
   filterMonth = new Date().getMonth() + 1;
   filterYear = new Date().getFullYear();
+
+  // Generate Modal
+  showGenerateModal = false;
+  generateMonth = new Date().getMonth() + 1;
+  generateYear = new Date().getFullYear();
+  isGenerating = false;
+
+  // Update Meters Modal
+  showUpdateModal = false;
+  selectedBill: Bill | null = null;
+  updateMeters: UpdateMetersDto = {
+    electricityNewIndex: 0,
+    waterNewIndex: 0,
+    otherFees: 0,
+    notes: ''
+  };
+  isUpdating = false;
 
   constructor(private adminService: AdminService) {}
 
@@ -116,9 +144,102 @@ export class BillManagementComponent implements OnInit {
   get filteredBills(): Bill[] {
     return this.bills.filter(bill => {
       const statusMatch = this.filterStatus === 'all' || bill.status === this.filterStatus;
-      const monthMatch = !this.filterMonth || bill.month === this.filterMonth;
+      const monthMatch = this.filterMonth === 0 || bill.month === this.filterMonth;
       const yearMatch = !this.filterYear || bill.year === this.filterYear;
-      return statusMatch && monthMatch && yearMatch;
+      const sentMatch = this.filterSent === 'all' || 
+                        (this.filterSent === 'sent' && bill.isSent) ||
+                        (this.filterSent === 'unsent' && !bill.isSent);
+      return statusMatch && monthMatch && yearMatch && sentMatch;
+    });
+  }
+
+  // Generate Bills
+  openGenerateModal(): void {
+    this.generateMonth = new Date().getMonth() + 1;
+    this.generateYear = new Date().getFullYear();
+    this.showGenerateModal = true;
+  }
+
+  closeGenerateModal(): void {
+    this.showGenerateModal = false;
+  }
+
+  generateBills(): void {
+    this.isGenerating = true;
+    this.adminService.generateBills(this.generateMonth, this.generateYear).subscribe({
+      next: (res: any) => {
+        alert(res.message || `Đã tạo ${res.count} hóa đơn!`);
+        this.closeGenerateModal();
+        this.loadBills();
+        this.isGenerating = false;
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Có lỗi xảy ra khi tạo hóa đơn');
+        this.isGenerating = false;
+      }
+    });
+  }
+
+  // Update Meters
+  openUpdateMetersModal(bill: Bill): void {
+    this.selectedBill = bill;
+    this.updateMeters = {
+      electricityNewIndex: bill.electricityNewIndex || bill.electricityOldIndex,
+      waterNewIndex: bill.waterNewIndex || bill.waterOldIndex,
+      otherFees: bill.otherFees || 0,
+      notes: bill.notes || ''
+    };
+    this.showUpdateModal = true;
+  }
+
+  closeUpdateModal(): void {
+    this.showUpdateModal = false;
+    this.selectedBill = null;
+  }
+
+  saveMeters(): void {
+    if (!this.selectedBill) return;
+    
+    this.isUpdating = true;
+    this.adminService.updateBillMeters(this.selectedBill.id, this.updateMeters).subscribe({
+      next: (res: any) => {
+        // Update local bill data
+        if (this.selectedBill) {
+          this.selectedBill.electricityNewIndex = this.updateMeters.electricityNewIndex;
+          this.selectedBill.waterNewIndex = this.updateMeters.waterNewIndex;
+          this.selectedBill.otherFees = this.updateMeters.otherFees;
+          this.selectedBill.notes = this.updateMeters.notes;
+          if (res.bill) {
+            this.selectedBill.electricityTotal = res.bill.electricityTotal;
+            this.selectedBill.waterTotal = res.bill.waterTotal;
+            this.selectedBill.totalAmount = res.bill.totalAmount;
+          }
+        }
+        alert('Đã cập nhật chỉ số điện nước!');
+        this.closeUpdateModal();
+        this.isUpdating = false;
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Có lỗi xảy ra');
+        this.isUpdating = false;
+      }
+    });
+  }
+
+  // Send Bill
+  sendBillToTenant(bill: Bill): void {
+    if (!confirm(`Gửi hóa đơn tháng ${bill.month}/${bill.year} đến ${bill.userName}?`)) {
+      return;
+    }
+
+    this.adminService.sendBillToTenant(bill.id).subscribe({
+      next: (res: any) => {
+        bill.isSent = true;
+        alert(res.message || 'Đã gửi hóa đơn!');
+      },
+      error: (err) => {
+        alert(err.error?.message || 'Có lỗi xảy ra');
+      }
     });
   }
 
@@ -169,6 +290,6 @@ export class BillManagementComponent implements OnInit {
   }
 
   formatCurrency(amount: number): string {
-    return amount.toLocaleString('vi-VN') + ' VNĐ';
+    return amount.toLocaleString('vi-VN') + ' đ';
   }
 }

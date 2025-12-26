@@ -1,0 +1,113 @@
+<div class="payments-management">
+  <div class="page-header">
+    <h1>💰 Lịch Sử Thanh Toán</h1>
+    <p class="subtitle">Quản lý tất cả giao dịch thanh toán trong hệ thống</p>
+  </div>
+
+  <!-- Search & Filter -->
+  <div class="toolbar">
+    <div class="search-box">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input type="text" [(ngModel)]="searchText" placeholder="Tìm theo tên, phòng, mã GD..." (input)="onSearch()">
+    </div>
+    <div class="filters">
+      <select [(ngModel)]="filterType" (change)="applyFilters()">
+        <option value="all">Tất cả loại</option>
+        <option value="Deposit">Tiền cọc</option>
+        <option value="MonthlyBill">Hóa đơn tháng</option>
+      </select>
+      <select [(ngModel)]="filterStatus" (change)="applyFilters()">
+        <option value="all">Tất cả trạng thái</option>
+        <option value="Success">Thành công</option>
+        <option value="Pending">Chờ xử lý</option>
+        <option value="Failed">Thất bại</option>
+      </select>
+      <select [(ngModel)]="filterMonth" (change)="applyFilters()">
+        <option value="0">Tất cả tháng</option>
+        <option *ngFor="let m of months" [value]="m">Tháng {{ m }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-row">
+    <div class="stat-card total">
+      <span class="stat-icon">📊</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ payments.length }}</span>
+        <span class="stat-label">Tổng giao dịch</span>
+      </div>
+    </div>
+    <div class="stat-card success">
+      <span class="stat-icon">✅</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ getCountByStatus('Success') }}</span>
+        <span class="stat-label">Thành công</span>
+      </div>
+    </div>
+    <div class="stat-card pending">
+      <span class="stat-icon">⏳</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ getCountByStatus('Pending') }}</span>
+        <span class="stat-label">Chờ xử lý</span>
+      </div>
+    </div>
+    <div class="stat-card revenue">
+      <span class="stat-icon">💵</span>
+      <div class="stat-content">
+        <span class="stat-value">{{ formatShortCurrency(getTotalSuccess()) }}</span>
+        <span class="stat-label">Tổng thu</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Payments Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Phòng</th>
+          <th>Khách hàng</th>
+          <th>Loại</th>
+          <th>Số tiền</th>
+          <th>Phương thức</th>
+          <th>Mã GD</th>
+          <th>Trạng thái</th>
+          <th>Ngày TT</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let payment of filteredPayments">
+          <td class="room-name">{{ payment.roomName }}</td>
+          <td>{{ payment.userName }}</td>
+          <td>
+            <span class="type-badge" [class.deposit]="payment.paymentType === 'Deposit'">
+              {{ payment.paymentType === 'Deposit' ? 'Tiền cọc' : 'Hóa đơn' }}
+            </span>
+          </td>
+          <td class="amount">{{ formatCurrency(payment.amount) }}</td>
+          <td>{{ payment.paymentMethod }}</td>
+          <td class="txn-id">{{ payment.providerTxnId || '-' }}</td>
+          <td>
+            <span class="status-badge" [ngClass]="'status-' + payment.status.toLowerCase()">
+              {{ getStatusLabel(payment.status) }}
+            </span>
+          </td>
+          <td>{{ formatDate(payment.paymentDate) }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" *ngIf="filteredPayments.length === 0">
+      <p>Không có giao dịch nào phù hợp với bộ lọc</p>
+    </div>
+  </div>
+</div>

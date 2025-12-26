@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QL_NhaTro_Server.Models;
+using QL_NhaTro_Server.Services;
 
 namespace QL_NhaTro_Server.Controllers
 {
@@ -11,10 +12,17 @@ namespace QL_NhaTro_Server.Controllers
     public class AdminController : ControllerBase
     {
         private readonly MotelManagementDbContext _db;
+        private readonly IBillGenerationService _billGenerationService;
+        private readonly INotificationService _notificationService;
 
-        public AdminController(MotelManagementDbContext db)
+        public AdminController(
+            MotelManagementDbContext db, 
+            IBillGenerationService billGenerationService,
+            INotificationService notificationService)
         {
             _db = db;
+            _billGenerationService = billGenerationService;
+            _notificationService = notificationService;
         }
 
         // ========== BOOKING MANAGEMENT ==========
@@ -182,6 +190,39 @@ namespace QL_NhaTro_Server.Controllers
             });
         }
 
+        // ========== PAYMENT MANAGEMENT ==========
+
+        // GET /api/admin/payments - Get all payments
+        [HttpGet("payments")]
+        public async Task<IActionResult> GetAllPayments()
+        {
+            var payments = await _db.Payments
+                .Include(p => p.User)
+                .Include(p => p.Booking)
+                    .ThenInclude(b => b.Room)
+                .Include(p => p.Bill)
+                    .ThenInclude(b => b.Room)
+                .OrderByDescending(p => p.CreatedAt)
+                .Select(p => new
+                {
+                    p.Id,
+                    RoomName = p.Booking != null && p.Booking.Room != null 
+                        ? p.Booking.Room.Name 
+                        : (p.Bill != null && p.Bill.Room != null ? p.Bill.Room.Name : "N/A"),
+                    UserName = p.User.FullName,
+                    p.Amount,
+                    PaymentType = p.PaymentType.ToString(),
+                    p.PaymentMethod,
+                    Status = p.Status.ToString(),
+                    p.ProviderTxnId,
+                    p.PaymentDate,
+                    p.CreatedAt
+                })
+                .ToListAsync();
+
+            return Ok(payments);
+        }
+
         // ========== BILL MANAGEMENT ==========
 
         // GET /api/admin/bills
@@ -203,6 +244,8 @@ namespace QL_NhaTro_Server.Controllers
                     UserName = b.User.FullName,
                     b.Month,
                     b.Year,
+                    b.DaysInMonth,
+                    b.DaysRented,
                     b.ElectricityOldIndex,
                     b.ElectricityNewIndex,
                     b.ElectricityPrice,
@@ -214,6 +257,7 @@ namespace QL_NhaTro_Server.Controllers
                     b.RoomPrice,
                     b.OtherFees,
                     b.TotalAmount,
+                    b.IsSent,
                     Status = b.Status.ToString(),
                     b.DueDate,
                     b.PaymentDate,
@@ -223,6 +267,131 @@ namespace QL_NhaTro_Server.Controllers
                 .ToListAsync();
 
             return Ok(bills);
+        }
+
+        // POST /api/admin/bills/generate - Tự động tạo hóa đơn cho tháng
+        [HttpPost("bills/generate")]
+        public async Task<IActionResult> GenerateBills([FromBody] GenerateBillsDto dto)
+        {
+            try
+            {
+                var month = dto.Month ?? DateTime.Now.Month;
+                var year = dto.Year ?? DateTime.Now.Year;
+
+                var bills = await _billGenerationService.GenerateMonthlyBillsAsync(month, year);
+
+                return Ok(new
+                {
+                    message = $"Đã tạo {bills.Count} hóa đơn cho tháng {month}/{year}",
+                    count = bills.Count,
+                    bills = bills.Select(b => new { b.Id, b.RoomId, b.RoomPrice, b.DaysRented, b.DaysInMonth })
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Lỗi khi tạo hóa đơn", error = ex.Message });
+            }
+        }
+
+        // PUT /api/admin/bills/{id}/update-meters - Admin cập nhật chỉ số điện/nước
+        [HttpPut("bills/{id}/update-meters")]
+        public async Task<IActionResult> UpdateBillMeters(string id, [FromBody] UpdateBillMetersDto dto)
+        {
+            var bill = await _db.Bills
+                .Include(b => b.Room)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (bill == null)
+            {
+                return NotFound(new { message = "Hóa đơn không tồn tại" });
+            }
+
+            // Update electricity
+            bill.ElectricityNewIndex = dto.ElectricityNewIndex;
+            var electricityUnits = dto.ElectricityNewIndex - bill.ElectricityOldIndex;
+            bill.ElectricityTotal = electricityUnits * bill.ElectricityPrice;
+
+            // Update water
+            bill.WaterNewIndex = dto.WaterNewIndex;
+            var waterUnits = dto.WaterNewIndex - bill.WaterOldIndex;
+            bill.WaterTotal = waterUnits * bill.WaterPrice;
+
+            // Update other fees if provided
+            if (dto.OtherFees.HasValue)
+            {
+                bill.OtherFees = dto.OtherFees.Value;
+            }
+
+            // Recalculate total
+            bill.TotalAmount = bill.RoomPrice + bill.ElectricityTotal + bill.WaterTotal + bill.OtherFees;
+
+            // Update notes if provided
+            if (!string.IsNullOrEmpty(dto.Notes))
+            {
+                bill.Notes = dto.Notes;
+            }
+
+            bill.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            return Ok(new
+            {
+                message = "Đã cập nhật chỉ số điện nước",
+                bill = new
+                {
+                    bill.Id,
+                    bill.ElectricityOldIndex,
+                    bill.ElectricityNewIndex,
+                    bill.ElectricityTotal,
+                    bill.WaterOldIndex,
+                    bill.WaterNewIndex,
+                    bill.WaterTotal,
+                    bill.RoomPrice,
+                    bill.OtherFees,
+                    bill.TotalAmount
+                }
+            });
+        }
+
+        // POST /api/admin/bills/{id}/send - Gửi hóa đơn đến người thuê
+        [HttpPost("bills/{id}/send")]
+        public async Task<IActionResult> SendBillToTenant(string id)
+        {
+            var bill = await _db.Bills
+                .Include(b => b.Room)
+                .Include(b => b.User)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (bill == null)
+            {
+                return NotFound(new { message = "Hóa đơn không tồn tại" });
+            }
+
+            if (bill.IsSent)
+            {
+                return BadRequest(new { message = "Hóa đơn đã được gửi trước đó" });
+            }
+
+            // Validate bill has meters filled
+            if (bill.ElectricityNewIndex == 0 && bill.WaterNewIndex == 0)
+            {
+                return BadRequest(new { message = "Vui lòng cập nhật chỉ số điện nước trước khi gửi" });
+            }
+
+            // Mark as sent
+            bill.IsSent = true;
+            bill.UpdatedAt = DateTime.Now;
+            await _db.SaveChangesAsync();
+
+            // Send notification to user
+            await _notificationService.SendBillSentNotificationAsync(
+                bill.UserId,
+                bill.Room.Name,
+                bill.Month,
+                bill.Year
+            );
+
+            return Ok(new { message = $"Đã gửi hóa đơn đến {bill.User.FullName}" });
         }
 
         // GET /api/admin/payments/deposits
@@ -405,4 +574,19 @@ namespace QL_NhaTro_Server.Controllers
     {
         public string Status { get; set; } = string.Empty;
     }
+
+    public class GenerateBillsDto
+    {
+        public int? Month { get; set; }
+        public int? Year { get; set; }
+    }
+
+    public class UpdateBillMetersDto
+    {
+        public int ElectricityNewIndex { get; set; }
+        public int WaterNewIndex { get; set; }
+        public decimal? OtherFees { get; set; }
+        public string? Notes { get; set; }
+    }
 }
+

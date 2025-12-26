@@ -14,11 +14,13 @@ namespace QL_NhaTro_Server.Controllers
     {
         private readonly MotelManagementDbContext _db;
         private readonly JwtService _jwt;
+        private readonly INotificationService _notificationService;
 
-        public AuthController(MotelManagementDbContext db, JwtService jwt)
+        public AuthController(MotelManagementDbContext db, JwtService jwt, INotificationService notificationService)
         {
             _db = db;
             _jwt = jwt;
+            _notificationService = notificationService;
         }
 
         // Hash password đơn giản bằng SHA256
@@ -67,6 +69,21 @@ namespace QL_NhaTro_Server.Controllers
 
             _db.Users.Add(user);
             await _db.SaveChangesAsync();
+
+            // Gửi thông báo chào mừng cho user mới (không gửi cho admin đầu tiên)
+            // Wrap trong try-catch để không ảnh hưởng đến việc đăng ký
+            if (!isFirstUser)
+            {
+                try
+                {
+                    await _notificationService.SendWelcomeNotificationAsync(user.Id, user.FullName);
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi nhưng không throw - đăng ký vẫn thành công
+                    Console.WriteLine($"Warning: Failed to send welcome notification: {ex.Message}");
+                }
+            }
 
             var message = isFirstUser 
                 ? "Đăng ký thành công! Bạn là Admin đầu tiên của hệ thống." 

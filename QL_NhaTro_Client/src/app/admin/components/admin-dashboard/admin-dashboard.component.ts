@@ -1,67 +1,45 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { StatisticsService } from '../../../services/statistics.service';
-import { ActivityService } from '../../../services/activity.service';
+import { RouterModule } from '@angular/router';
+import { StatisticsService, RoomDetails, MonthlyRevenue, RevenueChart } from '../../../services/statistics.service';
+import { AuthService } from '../../../services/auth.service';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
-
-interface StatsCard {
-  icon: string;
-  title: string;
-  value: string;
-  label: string;
-  trend?: string;
-  trendPositive?: boolean;
-}
-
-interface RoomStatus {
-  occupied: number;
-  available: number;
-  maintenance: number;
-  total: number;
-}
-
-interface RecentActivity {
-  type: string;
-  userName: string;
-  description: string;
-  time: string;
-  amount?: string;
-  avatarUrl?: string;
-  badge?: { text: string; color: string };
-}
-
-interface DashboardStats {
-  totalRooms: number;
-  occupiedRooms: number;
-  availableRooms: number;
-  monthlyRevenue: number;
-  pendingBookings: number;
-}
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.css'
 })
 export class AdminDashboardComponent implements OnInit {
   
   currentDate: string = '';
-  isLoading = true; // Skeleton loading
+  currentUser: any = null;
+  isLoading = true;
   error: string = '';
   
-  stats: StatsCard[] = [];
-  roomStatus: RoomStatus = { occupied: 0, available: 0, maintenance: 0, total: 0 };
-  recentActivities: RecentActivity[] = [];
+  roomDetails: RoomDetails = {
+    total: 0,
+    occupied: 0,
+    available: 0,
+    maintenance: 0,
+    reserved: 0,
+    occupancyRate: 0
+  };
+  
+  monthlyRevenue: number = 0;
+  revenueData: MonthlyRevenue[] = [];
+  maxRevenue: number = 0;
 
   constructor(
     private statisticsService: StatisticsService,
-    private activityService: ActivityService
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
+    this.currentUser = this.authService.getUser();
     this.updateDate();
     this.loadDashboardData();
   }
@@ -70,47 +48,23 @@ export class AdminDashboardComponent implements OnInit {
     this.isLoading = true;
     this.error = '';
 
-    // Load all 3 APIs in PARALLEL - data shows immediately when ready! 🚀
     forkJoin({
       summary: this.statisticsService.getSummary(),
-      roomStatus: this.statisticsService.getRoomStatus(),
-      activities: this.activityService.getRecent(3)
+      roomDetails: this.statisticsService.getRoomDetails(),
+      revenueChart: this.statisticsService.getRevenueChart(6)
     })
     .pipe(finalize(() => this.isLoading = false))
     .subscribe({
       next: (results) => {
-        // Summary stats
-        const data: DashboardStats = results.summary;
-        this.stats = [
-          {
-            icon: 'bedroom_parent',
-            title: 'Tổng',
-            value: data.totalRooms.toString(),
-            label: 'Tổng số phòng'
-          },
-          {
-            icon: 'vpn_key',
-            title: 'Đã cho thuê',
-            value: data.occupiedRooms.toString(),
-            label: 'Đã cho thuê',
-            trend: '5%',
-            trendPositive: true
-          },
-          {
-            icon: 'payments',
-            title: 'Doanh thu',
-            value: `${(data.monthlyRevenue / 1000000).toFixed(1)} tr`,
-            label: 'Doanh thu tháng',
-            trend: '12%',
-            trendPositive: true
-          }
-        ];
-
-        // Room status
-        this.roomStatus = results.roomStatus;
-
-        // Recent activities
-        this.recentActivities = results.activities;
+        // Room details
+        this.roomDetails = results.roomDetails;
+        
+        // Monthly revenue from summary
+        this.monthlyRevenue = results.summary.monthlyRevenue || 0;
+        
+        // Revenue chart data
+        this.revenueData = results.revenueChart.monthlyData || [];
+        this.maxRevenue = Math.max(...this.revenueData.map(m => m.revenue), 1);
       },
       error: (err) => {
         console.error('Error loading dashboard data:', err);
@@ -122,15 +76,61 @@ export class AdminDashboardComponent implements OnInit {
   updateDate() {
     const now = new Date();
     const options: Intl.DateTimeFormatOptions = { 
+      weekday: 'long',
       day: 'numeric', 
       month: 'long', 
       year: 'numeric' 
     };
-    this.currentDate = `Hôm nay, ${now.toLocaleDateString('vi-VN', options)}`;
+    this.currentDate = now.toLocaleDateString('vi-VN', options);
   }
 
   refreshData() {
     this.loadDashboardData();
     this.updateDate();
+  }
+
+  // Format currency to VND
+  formatCurrency(amount: number): string {
+    if (amount >= 1000000000) {
+      return (amount / 1000000000).toFixed(1) + ' tỷ';
+    }
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + ' tr';
+    }
+    return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
+  }
+
+  formatShortCurrency(amount: number): string {
+    if (amount >= 1000000) {
+      return (amount / 1000000).toFixed(1) + 'tr';
+    }
+    if (amount >= 1000) {
+      return (amount / 1000).toFixed(0) + 'k';
+    }
+    return amount.toString();
+  }
+
+  // Calculate bar height percentage
+  getBarHeight(revenue: number): number {
+    if (this.maxRevenue === 0) return 10;
+    return Math.max((revenue / this.maxRevenue) * 80, 10);
+  }
+
+  // Calculate pie chart slice dash array
+  getSliceDashArray(count: number): string {
+    if (this.roomDetails.total === 0) return '0 502.4';
+    const percentage = (count / this.roomDetails.total) * 100;
+    const circumference = 2 * Math.PI * 80; // 2πr where r=80
+    const dashLength = (percentage / 100) * circumference;
+    return `${dashLength} ${circumference - dashLength}`;
+  }
+
+  // Calculate pie chart slice offset
+  getSliceOffset(previousCount: number): string {
+    if (this.roomDetails.total === 0) return '0';
+    const percentage = (previousCount / this.roomDetails.total) * 100;
+    const circumference = 2 * Math.PI * 80;
+    const offset = (percentage / 100) * circumference;
+    return (-offset).toString();
   }
 }

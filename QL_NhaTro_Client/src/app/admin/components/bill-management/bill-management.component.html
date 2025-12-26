@@ -1,23 +1,17 @@
 <div class="bill-management">
+  <!-- Page Header with Actions -->
   <div class="page-header">
-    <h1>Quản Lý Hóa Đơn</h1>
+    <div class="header-left">
+      <h1>Quản Lý Hóa Đơn</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="openGenerateModal()">
+        <span>⚡</span> Tạo Hóa Đơn Tháng
+      </button>
+    </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button 
-      class="tab-btn" 
-      [class.active]="activeTab === 'monthly'"
-      (click)="switchTab('monthly')">
-      📄 Hóa Đơn Hàng Tháng
-    </button>
-    <button 
-      class="tab-btn" 
-      [class.active]="activeTab === 'deposit'"
-      (click)="switchTab('deposit')">
-      💰 Tiền Cọc
-    </button>
-  </div>
+
 
   <!-- Loading -->
   <div class="loading" *ngIf="isLoading">
@@ -52,6 +46,14 @@
           <option value="Overdue">Quá hạn</option>
         </select>
       </div>
+      <div class="filter-group">
+        <label>Đã gửi:</label>
+        <select [(ngModel)]="filterSent">
+          <option value="all">Tất cả</option>
+          <option value="sent">Đã gửi</option>
+          <option value="unsent">Chưa gửi</option>
+        </select>
+      </div>
     </div>
 
     <!-- Bills Table -->
@@ -62,12 +64,12 @@
             <th>Phòng</th>
             <th>Khách thuê</th>
             <th>Kỳ</th>
-            <th>Điện</th>
-            <th>Nước</th>
+            <th>Điện (kWh)</th>
+            <th>Nước (m³)</th>
             <th>Tiền phòng</th>
             <th>Tổng</th>
             <th>Trạng thái</th>
-            <th>Hạn TT</th>
+            <th>Đã gửi</th>
             <th>Thao tác</th>
           </tr>
         </thead>
@@ -77,25 +79,53 @@
             <td>{{ bill.userName }}</td>
             <td>{{ bill.month }}/{{ bill.year }}</td>
             <td>
-              <span class="detail-text">{{ bill.electricityNewIndex - bill.electricityOldIndex }} kWh</span>
-              <span class="detail-amount">{{ formatCurrency(bill.electricityTotal) }}</span>
+              <span *ngIf="bill.electricityNewIndex > 0">
+                {{ bill.electricityOldIndex }} → {{ bill.electricityNewIndex }}
+                <small>({{ bill.electricityNewIndex - bill.electricityOldIndex }})</small>
+              </span>
+              <span *ngIf="bill.electricityNewIndex === 0" class="text-muted">Chưa nhập</span>
             </td>
             <td>
-              <span class="detail-text">{{ bill.waterNewIndex - bill.waterOldIndex }} m³</span>
-              <span class="detail-amount">{{ formatCurrency(bill.waterTotal) }}</span>
+              <span *ngIf="bill.waterNewIndex > 0">
+                {{ bill.waterOldIndex }} → {{ bill.waterNewIndex }}
+                <small>({{ bill.waterNewIndex - bill.waterOldIndex }})</small>
+              </span>
+              <span *ngIf="bill.waterNewIndex === 0" class="text-muted">Chưa nhập</span>
             </td>
-            <td>{{ formatCurrency(bill.roomPrice) }}</td>
+            <td>
+              {{ formatCurrency(bill.roomPrice) }}
+              <small *ngIf="bill.daysRented < bill.daysInMonth" class="pro-rata">
+                ({{ bill.daysRented }}/{{ bill.daysInMonth }} ngày)
+              </small>
+            </td>
             <td class="total-amount">{{ formatCurrency(bill.totalAmount) }}</td>
             <td>
               <span class="status-badge" [ngClass]="getStatusClass(bill.status)">
                 {{ getStatusLabel(bill.status) }}
               </span>
             </td>
-            <td>{{ formatDate(bill.dueDate) }}</td>
+            <td>
+              <span class="sent-badge" [class.sent]="bill.isSent">
+                {{ bill.isSent ? '✓ Đã gửi' : '○ Chưa gửi' }}
+              </span>
+            </td>
             <td class="actions">
               <button 
+                class="btn-action btn-edit" 
+                (click)="openUpdateMetersModal(bill)"
+                title="Cập nhật chỉ số">
+                ✏️
+              </button>
+              <button 
+                class="btn-action btn-send" 
+                *ngIf="!bill.isSent && bill.electricityNewIndex > 0"
+                (click)="sendBillToTenant(bill)"
+                title="Gửi hóa đơn">
+                📤
+              </button>
+              <button 
                 class="btn-action btn-paid" 
-                *ngIf="bill.status === 'Pending'"
+                *ngIf="bill.status === 'Pending' && bill.isSent"
                 (click)="updateBillStatus(bill, 'Paid')"
                 title="Đánh dấu đã thanh toán">
                 ✓
@@ -106,46 +136,117 @@
       </table>
 
       <div class="empty-state" *ngIf="filteredBills.length === 0">
-        <p>Không có hóa đơn nào</p>
+        <p>Không có hóa đơn nào. Nhấn "Tạo Hóa Đơn Tháng" để bắt đầu.</p>
       </div>
     </div>
   </div>
 
-  <!-- Deposit Payments Tab -->
-  <div class="tab-content" *ngIf="!isLoading && activeTab === 'deposit'">
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Phòng</th>
-            <th>Khách</th>
-            <th>Số tiền</th>
-            <th>Phương thức</th>
-            <th>Mã GD</th>
-            <th>Trạng thái</th>
-            <th>Ngày TT</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let deposit of deposits">
-            <td class="room-name">{{ deposit.roomName }}</td>
-            <td>{{ deposit.userName }}</td>
-            <td class="total-amount">{{ formatCurrency(deposit.amount) }}</td>
-            <td>{{ deposit.paymentMethod }}</td>
-            <td class="txn-id">{{ deposit.providerTxnId || '-' }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="getStatusClass(deposit.status)">
-                {{ deposit.status }}
-              </span>
-            </td>
-            <td>{{ formatDate(deposit.paymentDate) }}</td>
-          </tr>
-        </tbody>
-      </table>
+</div>
 
-      <div class="empty-state" *ngIf="deposits.length === 0">
-        <p>Không có giao dịch tiền cọc nào</p>
+<!-- Generate Bills Modal -->
+<div class="modal-overlay" *ngIf="showGenerateModal" (click)="closeGenerateModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>⚡ Tạo Hóa Đơn Hàng Tháng</h2>
+      <button class="close-btn" (click)="closeGenerateModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-description">
+        Hệ thống sẽ tự động tạo hóa đơn cho tất cả hợp đồng đang hoạt động.
+        Tiền phòng sẽ được tính pro-rata theo số ngày ở.
+      </p>
+      <div class="form-group">
+        <label>Tháng</label>
+        <select [(ngModel)]="generateMonth">
+          <option *ngFor="let m of [1,2,3,4,5,6,7,8,9,10,11,12]" [value]="m">Tháng {{ m }}</option>
+        </select>
       </div>
+      <div class="form-group">
+        <label>Năm</label>
+        <select [(ngModel)]="generateYear">
+          <option [value]="2024">2024</option>
+          <option [value]="2025">2025</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeGenerateModal()">Hủy</button>
+      <button class="btn-primary" (click)="generateBills()" [disabled]="isGenerating">
+        {{ isGenerating ? 'Đang tạo...' : 'Tạo Hóa Đơn' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Update Meters Modal -->
+<div class="modal-overlay" *ngIf="showUpdateModal" (click)="closeUpdateModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>✏️ Cập Nhật Chỉ Số Điện Nước</h2>
+      <button class="close-btn" (click)="closeUpdateModal()">×</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedBill">
+      <div class="bill-info">
+        <p><strong>Phòng:</strong> {{ selectedBill.roomName }}</p>
+        <p><strong>Khách thuê:</strong> {{ selectedBill.userName }}</p>
+        <p><strong>Kỳ:</strong> Tháng {{ selectedBill.month }}/{{ selectedBill.year }}</p>
+      </div>
+      
+      <div class="meter-section">
+        <h3>⚡ Điện</h3>
+        <div class="meter-row">
+          <div class="form-group">
+            <label>Chỉ số cũ</label>
+            <input type="number" [value]="selectedBill.electricityOldIndex" disabled>
+          </div>
+          <div class="form-group">
+            <label>Chỉ số mới</label>
+            <input type="number" [(ngModel)]="updateMeters.electricityNewIndex" min="0">
+          </div>
+          <div class="form-group">
+            <label>Số điện</label>
+            <input type="text" [value]="updateMeters.electricityNewIndex - selectedBill.electricityOldIndex" disabled>
+          </div>
+        </div>
+        <p class="price-info">Đơn giá: {{ formatCurrency(selectedBill.electricityPrice) }}/kWh</p>
+      </div>
+
+      <div class="meter-section">
+        <h3>💧 Nước</h3>
+        <div class="meter-row">
+          <div class="form-group">
+            <label>Chỉ số cũ</label>
+            <input type="number" [value]="selectedBill.waterOldIndex" disabled>
+          </div>
+          <div class="form-group">
+            <label>Chỉ số mới</label>
+            <input type="number" [(ngModel)]="updateMeters.waterNewIndex" min="0">
+          </div>
+          <div class="form-group">
+            <label>Số nước</label>
+            <input type="text" [value]="updateMeters.waterNewIndex - selectedBill.waterOldIndex" disabled>
+          </div>
+        </div>
+        <p class="price-info">Đơn giá: {{ formatCurrency(selectedBill.waterPrice) }}/m³</p>
+      </div>
+
+      <div class="meter-section">
+        <h3>📝 Phí khác</h3>
+        <div class="form-group">
+          <label>Phí phát sinh (VNĐ)</label>
+          <input type="number" [(ngModel)]="updateMeters.otherFees" min="0">
+        </div>
+        <div class="form-group">
+          <label>Ghi chú</label>
+          <textarea [(ngModel)]="updateMeters.notes" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeUpdateModal()">Hủy</button>
+      <button class="btn-primary" (click)="saveMeters()" [disabled]="isUpdating">
+        {{ isUpdating ? 'Đang lưu...' : 'Lưu Chỉ Số' }}
+      </button>
     </div>
   </div>
 </div>

@@ -68,6 +68,13 @@ namespace QL_NhaTro_Server.Models
         [Column(TypeName = "decimal(15,2)")]
         public decimal TotalAmount { get; set; }
 
+        // Pro-rata calculation fields
+        public int DaysInMonth { get; set; } = 30;  // Tổng số ngày trong tháng
+        public int DaysRented { get; set; } = 30;   // Số ngày thực tế ở
+
+        // Trạng thái đã gửi hóa đơn cho người thuê
+        public bool IsSent { get; set; } = false;
+
         [Required]
         public BillStatus Status { get; set; } = BillStatus.Pending;
 

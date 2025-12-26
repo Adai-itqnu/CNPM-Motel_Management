@@ -16,6 +16,8 @@ import { UserManagementComponent } from './admin/components/user-management/user
 import { BillManagementComponent } from './admin/components/bill-management/bill-management.component';
 import { BookingApprovalComponent } from './admin/components/booking-approval/booking-approval.component';
 import { ContractManagementComponent } from './admin/components/contract-management/contract-management.component';
+import { PaymentsManagementComponent } from './admin/components/payments-management/payments-management.component';
+import { AdminNotificationsComponent } from './admin/components/admin-notifications/admin-notifications.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -38,6 +40,8 @@ export const routes: Routes = [
       { path: 'bills', component: BillManagementComponent },
       { path: 'bookings', component: BookingApprovalComponent },
       { path: 'contracts', component: ContractManagementComponent },
+      { path: 'payments', component: PaymentsManagementComponent },
+      { path: 'notifications', component: AdminNotificationsComponent },
     ]
   },
   

@@ -15,6 +15,8 @@ builder.Services.AddDbContext<MotelManagementDbContext>(options =>
 
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<VNPayService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IBillGenerationService, BillGenerationService>();
 
 // Background service for auto-canceling expired bookings
 builder.Services.AddHostedService<BookingCleanupService>();
