@@ -124,6 +124,7 @@ namespace QL_NhaTro_Server.Controllers
                     user.Phone,
                     user.IdCard,
                     user.Address,
+                    user.AvatarUrl,
                     role = user.Role.ToString().ToLower() // lowercase để match frontend
                 }
             });

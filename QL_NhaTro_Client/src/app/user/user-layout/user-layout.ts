@@ -37,6 +37,16 @@ export class UserLayoutComponent implements OnInit, OnDestroy {
       this.userInitials = this.getInitials(this.currentUser.fullName);
     }
 
+    // Subscribe to user changes to update avatar in real-time
+    this.subscriptions.push(
+      this.authService.user$.subscribe(user => {
+        this.currentUser = user;
+        if (user?.fullName) {
+          this.userInitials = this.getInitials(user.fullName);
+        }
+      })
+    );
+
     // Subscribe to unread count
     this.subscriptions.push(
       this.notificationService.unreadCount$.subscribe(count => {
@@ -136,6 +146,12 @@ export class UserLayoutComponent implements OnInit, OnDestroy {
   logout() {
     this.authService.logout();
     this.router.navigate(['/login']);
+  }
+
+  getAvatarUrl(): string {
+    if (!this.currentUser?.avatarUrl) return '';
+    if (this.currentUser.avatarUrl.startsWith('data:image')) return this.currentUser.avatarUrl;
+    return `http://localhost:5001${this.currentUser.avatarUrl}?t=${Date.now()}`;
   }
 }
 

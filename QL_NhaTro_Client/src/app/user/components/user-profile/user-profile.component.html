@@ -15,14 +15,14 @@
   <div class="profile-card">
     <!-- Avatar -->
     <div class="avatar-section">
-      <div class="avatar-wrapper" (click)="triggerFileInput()">
-        <img *ngIf="currentUser?.avatarUrl" [src]="getAvatarUrl()" class="avatar-image" />
+      <div class="avatar-wrapper" onclick="document.getElementById('avatarInput').click()">
+        <img *ngIf="currentUser?.avatarUrl" [src]="getAvatar()" class="avatar-image" />
         <div *ngIf="!currentUser?.avatarUrl" class="large-avatar">{{ getInitials() }}</div>
         <div class="avatar-overlay">
           <span>Đổi ảnh</span>
         </div>
       </div>
-      <input type="file" id="avatarInput" accept="image/*" (change)="onFileSelected($event)" style="display:none">
+      <input type="file" id="avatarInput" accept="image/*" (change)="onFileChange($event)" style="display:none">
       <h2>{{ currentUser?.fullName }}</h2>
       <p class="user-role">{{ currentUser?.role === 'admin' ? 'Quản trị viên' : 'Người thuê trọ' }}</p>
     </div>
@@ -62,33 +62,31 @@
       <form *ngIf="isEditing">
         <div class="form-group">
           <label>Họ và tên</label>
-          <input type="text" [(ngModel)]="profileForm.fullName" name="fullName">
+          <input type="text" [(ngModel)]="form.fullName" name="fullName">
         </div>
 
         <div class="form-group">
           <label>Email</label>
-          <input type="email" [(ngModel)]="profileForm.email" name="email">
+          <input type="email" [(ngModel)]="form.email" name="email">
         </div>
 
         <div class="form-group">
           <label>Số điện thoại <span class="required">*</span></label>
-          <input type="text" [(ngModel)]="profileForm.phone" name="phone" (input)="phoneError = ''">
-          <span *ngIf="phoneError" class="error-message">{{ phoneError }}</span>
+          <input type="text" [(ngModel)]="form.phone" name="phone">
         </div>
 
         <div class="form-group">
           <label>CCCD <span class="required">*</span></label>
-          <input type="text" [(ngModel)]="profileForm.idCard" name="idCard" (input)="idCardError = ''">
-          <span *ngIf="idCardError" class="error-message">{{ idCardError }}</span>
+          <input type="text" [(ngModel)]="form.idCard" name="idCard">
         </div>
 
         <div class="form-group">
           <label>Địa chỉ</label>
-          <textarea rows="3" [(ngModel)]="profileForm.address" name="address"></textarea>
+          <textarea rows="3" [(ngModel)]="form.address" name="address"></textarea>
         </div>
 
         <div class="form-actions">
-          <button type="button" class="btn-save" (click)="saveProfile()">Lưu</button>
+          <button type="button" class="btn-save" (click)="save()">Lưu</button>
           <button type="button" class="btn-cancel" (click)="cancelEdit()">Hủy</button>
         </div>
       </form>

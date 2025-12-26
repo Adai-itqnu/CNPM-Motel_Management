@@ -50,6 +50,11 @@ export class AuthService {
     return this.userSubject.value;
   }
 
+  updateUser(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
+    this.userSubject.next(user);
+  }
+
   isAdmin(): boolean {
     const role = this.getUser()?.role?.toLowerCase();
     return role === 'admin';

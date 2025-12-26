@@ -54,9 +54,10 @@
       <!-- User Profile Dropdown -->
       <div class="user-profile" (click)="toggleDropdown()">
         <span class="user-name">{{ currentUser?.fullName || 'User' }}</span>
-        <div class="avatar-initials">
+        <div class="avatar-initials" *ngIf="!currentUser?.avatarUrl">
           {{ userInitials }}
         </div>
+        <img *ngIf="currentUser?.avatarUrl" [src]="getAvatarUrl()" class="avatar-image" alt="Avatar" />
         
         <!-- Dropdown Menu -->
         <div class="dropdown-menu" *ngIf="showDropdown">

@@ -109,6 +109,15 @@
   border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
+.avatar-image {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+
 /* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
