@@ -16,16 +16,22 @@ namespace QL_NhaTro_Server.DTOs
         [Range(2000, 2100)]
         public int Year { get; set; }
 
+        [Range(0, int.MaxValue)]
+        public int ElectricityOldIndex { get; set; }
+
         [Required]
         [Range(0, int.MaxValue)]
         public int ElectricityNewIndex { get; set; }
+
+        [Range(0, int.MaxValue)]
+        public int WaterOldIndex { get; set; }
 
         [Required]
         [Range(0, int.MaxValue)]
         public int WaterNewIndex { get; set; }
 
         [Range(0, double.MaxValue)]
-        public decimal OtherFees { get; set; } = 0;
+        public decimal? OtherFees { get; set; }
 
         public DateTime? DueDate { get; set; }
 

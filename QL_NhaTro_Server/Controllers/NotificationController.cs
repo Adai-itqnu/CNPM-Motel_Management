@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QL_NhaTro_Server.DTOs;
 using QL_NhaTro_Server.Models;
 using QL_NhaTro_Server.Services;
 using System.Security.Claims;
@@ -267,17 +268,4 @@ namespace QL_NhaTro_Server.Controllers
             }
         }
     }
-
-    // DTOs
-    public class AdminSendNotificationDto
-    {
-        public string Title { get; set; } = string.Empty;
-        public string Content { get; set; } = string.Empty;
-        public string? UserId { get; set; }  // null nếu gửi tất cả
-        public string TargetType { get; set; } = "all"; // "all" hoặc "user"
-        public bool SendToAll => TargetType == "all"; // Computed property
-        public string? Type { get; set; } // notification type from frontend
-        public string? Link { get; set; }
-    }
 }
-

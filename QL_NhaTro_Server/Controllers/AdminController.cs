@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using QL_NhaTro_Server.DTOs;
 using QL_NhaTro_Server.Models;
 using QL_NhaTro_Server.Services;
 
@@ -538,55 +539,4 @@ namespace QL_NhaTro_Server.Controllers
             });
         }
     }
-
-    // DTOs
-    public class UpdateBookingStatusDto
-    {
-        public string Status { get; set; } = string.Empty;
-        public string? AdminNote { get; set; }
-    }
-
-    public class TerminateContractDto
-    {
-        public string? Reason { get; set; }
-    }
-
-    public class ExtendContractDto
-    {
-        public int ExtendMonths { get; set; } = 12; // Default 12 months
-    }
-
-    public class CreateBillDto
-    {
-        public string ContractId { get; set; } = string.Empty;
-        public int Month { get; set; }
-        public int Year { get; set; }
-        public int ElectricityOldIndex { get; set; }
-        public int ElectricityNewIndex { get; set; }
-        public int WaterOldIndex { get; set; }
-        public int WaterNewIndex { get; set; }
-        public decimal? OtherFees { get; set; }
-        public DateTime? DueDate { get; set; }
-        public string? Notes { get; set; }
-    }
-
-    public class UpdateBillStatusDto
-    {
-        public string Status { get; set; } = string.Empty;
-    }
-
-    public class GenerateBillsDto
-    {
-        public int? Month { get; set; }
-        public int? Year { get; set; }
-    }
-
-    public class UpdateBillMetersDto
-    {
-        public int ElectricityNewIndex { get; set; }
-        public int WaterNewIndex { get; set; }
-        public decimal? OtherFees { get; set; }
-        public string? Notes { get; set; }
-    }
 }
-

@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using QL_NhaTro_Server.DTOs;
 using QL_NhaTro_Server.Models;
 using QL_NhaTro_Server.Services;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace QL_NhaTro_Server.Controllers
 {
@@ -23,12 +21,16 @@ namespace QL_NhaTro_Server.Controllers
             _notificationService = notificationService;
         }
 
-        // Hash password đơn giản bằng SHA256
+        // Hash password bằng BCrypt (an toàn hơn SHA256)
         private string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToBase64String(bytes);
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        // Verify password
+        private bool VerifyPassword(string password, string hash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, hash);
         }
 
         [HttpPost("register")]
@@ -78,10 +80,9 @@ namespace QL_NhaTro_Server.Controllers
                 {
                     await _notificationService.SendWelcomeNotificationAsync(user.Id, user.FullName);
                 }
-                catch (Exception ex)
+                catch
                 {
-                    // Log lỗi nhưng không throw - đăng ký vẫn thành công
-                    Console.WriteLine($"Warning: Failed to send welcome notification: {ex.Message}");
+                    // Ignore notification errors - don't block registration
                 }
             }
 
@@ -103,8 +104,7 @@ namespace QL_NhaTro_Server.Controllers
             if (user == null)
                 return Unauthorized("Tài khoản không tồn tại");
 
-            // So sánh hash password
-            if (HashPassword(dto.Password) != user.PasswordHash)
+            if (!VerifyPassword(dto.Password, user.PasswordHash))
                 return Unauthorized("Mật khẩu không đúng");
 
             if (!user.IsActive)

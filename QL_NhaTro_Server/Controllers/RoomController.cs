@@ -391,9 +391,4 @@ namespace QL_NhaTro_Server.Controllers
             }
         }
     }
-    // DTO bổ sung
-    public class AddAmenityDto
-    {
-        public string AmenityName { get; set; } = string.Empty;
-    }
 }

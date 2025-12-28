@@ -15,40 +15,34 @@ namespace QL_NhaTro_Server.Controllers
     {
         private readonly MotelManagementDbContext _db;
         private readonly VNPayService _vnpayService;
+        private readonly IConfiguration _configuration;
 
-        public BookingController(MotelManagementDbContext db, VNPayService vnpayService)
+        public BookingController(MotelManagementDbContext db, VNPayService vnpayService, IConfiguration configuration)
         {
             _db = db;
             _vnpayService = vnpayService;
+            _configuration = configuration;
         }
 
         // POST /api/booking/create-deposit
         [HttpPost("create-deposit")]
         public async Task<IActionResult> CreateDepositBooking([FromBody] CreateBookingDto dto)
         {
-            Console.WriteLine("=== CREATE DEPOSIT BOOKING ===");
-            Console.WriteLine($"Received: RoomId={dto.RoomId}, CheckInDate={dto.CheckInDate}, Phone={dto.ContactPhone}");
-            
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
-                Console.WriteLine("User not authenticated");
                 return Unauthorized("User not authenticated");
             }
-            Console.WriteLine($"UserId: {userId}");
-
 
             // Check if user has CCCD
             var user = await _db.Users.FindAsync(userId);
             if (user == null)
             {
-                Console.WriteLine("User not found");
                 return NotFound("User not found");
             }
 
             if (string.IsNullOrEmpty(user.IdCard))
             {
-                Console.WriteLine("User missing CCCD");
                 return BadRequest(new { 
                     requireUpdate = true,
                     message = "Vui lòng cập nhật CCCD trước khi đặt phòng" 
@@ -58,24 +52,18 @@ namespace QL_NhaTro_Server.Controllers
             // Validate CheckInDate
             if (dto.CheckInDate < DateTime.Today)
             {
-                Console.WriteLine($"CheckInDate {dto.CheckInDate} is in the past");
                 return BadRequest("Ngày nhận phòng phải từ hôm nay trở đi");
             }
-            Console.WriteLine($"CheckInDate validation passed: {dto.CheckInDate}");
-
 
             // Check if room exists and is available
             var room = await _db.Rooms.FindAsync(dto.RoomId);
             if (room == null)
             {
-                Console.WriteLine($"Room {dto.RoomId} not found");
                 return NotFound("Room not found");
             }
-            Console.WriteLine($"Room found: {room.Name}, Status: {room.Status}");
 
             if (room.Status != RoomStatus.Available)
             {
-                Console.WriteLine($"Room {room.Name} is not available, status: {room.Status}");
                 return BadRequest("Room is not available");
             }
 
@@ -86,15 +74,11 @@ namespace QL_NhaTro_Server.Controllers
 
             if (existingBooking != null)
             {
-                Console.WriteLine($"User already has pending booking: {existingBooking.Id}");
                 return BadRequest("You already have a pending booking");
             }
-            Console.WriteLine("No pending booking found, proceeding to create new booking");
-
 
             // Get deposit amount from room (if 0, use room price as default)
             var depositAmount = room.DepositAmount > 0 ? room.DepositAmount : room.Price;
-            Console.WriteLine($"Deposit amount from room: {depositAmount}");
 
             // Create booking with deposit amount
             var booking = new Booking
@@ -103,21 +87,19 @@ namespace QL_NhaTro_Server.Controllers
                 UserId = userId,
                 RoomId = dto.RoomId,
                 CheckInDate = dto.CheckInDate,
-                DepositAmount = depositAmount,  // Save deposit amount in booking
+                DepositAmount = depositAmount,
                 Status = BookingStatus.Pending,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now
             };
 
-
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
-            Console.WriteLine($"Booking created: {booking.Id}, DepositAmount: {booking.DepositAmount}");
 
-            // Create VNPAY payment URL
-            var tmnCode = "729I87YR";
-            var hashSecret = "ZKPI2R2IFEA4VIA1WMCMI65XQUMQHTWT";
-            var returnUrl = "http://localhost:4200/payment/vnpay-return";
+            // Create VNPAY payment URL from configuration
+            var tmnCode = _configuration["VNPaySettings:TmnCode"]!;
+            var hashSecret = _configuration["VNPaySettings:HashSecret"]!;
+            var returnUrl = _configuration["VNPaySettings:ReturnUrl"]!;
             
             var paymentUrl = _vnpayService.CreatePaymentUrl(
                 orderId: booking.Id,
@@ -289,4 +271,3 @@ namespace QL_NhaTro_Server.Controllers
         }
     }
 }
-

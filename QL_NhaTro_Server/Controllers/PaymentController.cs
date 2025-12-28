@@ -4,8 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using QL_NhaTro_Server.DTOs;
 using QL_NhaTro_Server.Models;
 using QL_NhaTro_Server.Services;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace QL_NhaTro_Server.Controllers
 {
@@ -30,69 +28,7 @@ namespace QL_NhaTro_Server.Controllers
             _configuration = configuration;
         }
 
-        // POST /api/payment/create-deposit
-        [HttpPost("create-deposit")]
-        [Authorize]
-        public async Task<IActionResult> CreateDepositPayment([FromBody] CreateDepositDto dto)
-        {
-            try
-            {
-                // Validate room exists and is available
-                var room = await _db.Rooms.FindAsync(dto.RoomId);
-                if (room == null)
-                {
-                    return NotFound(new { message = "Phòng không tồn tại" });
-                }
-
-                if (room.Status != RoomStatus.Available)
-                {
-                    return BadRequest(new { message = "Phòng không còn trống" });
-                }
-
-                // Calculate deposit amount - use provided value if > 0, otherwise use room price
-                var actualDepositAmount = dto.DepositAmount > 0 ? dto.DepositAmount : room.Price;
-
-                // Create booking record (Pending status)
-                var booking = new Booking
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    UserId = dto.UserId,
-                    RoomId = dto.RoomId,
-                    Status = BookingStatus.Pending,
-                    DepositAmount = actualDepositAmount,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
-
-                _db.Bookings.Add(booking);
-                await _db.SaveChangesAsync();
-
-                // Generate VNPAY payment URL using config
-                var tmnCode = _configuration["VNPaySettings:TmnCode"]!;
-                var hashSecret = _configuration["VNPaySettings:HashSecret"]!;
-                var returnUrl = dto.ReturnUrl ?? _configuration["VNPaySettings:ReturnUrl"]!;
-                
-                var paymentUrl = _vnpayService.CreatePaymentUrl(
-                    orderId: booking.Id,
-                    amount: actualDepositAmount,
-                    orderInfo: $"Dat coc phong",
-                    returnUrl: returnUrl,
-                    tmnCode: tmnCode,
-                    hashSecret: hashSecret
-                );
-
-                return Ok(new
-                {
-                    bookingId = booking.Id,
-                    paymentUrl = paymentUrl,
-                    message = "Vui lòng thanh toán cọc để hoàn tất đặt phòng"
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Lỗi tạo thanh toán", error = ex.Message });
-            }
-        }
+        // NOTE: Deposit payment now handled by BookingController.CreateDepositBooking
 
         // POST /api/payment/bill/{id}/vnpay - Thanh toán hóa đơn hàng tháng qua VNPay
         [HttpPost("bill/{id}/vnpay")]
@@ -156,9 +92,12 @@ namespace QL_NhaTro_Server.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> VNPayCallback([FromQuery] VNPayCallbackDto callback)
         {
-            Console.WriteLine("\n=== VNPAY CALLBACK RECEIVED ===");
-            Console.WriteLine($"vnp_TxnRef: {callback.vnp_TxnRef}");
-            Console.WriteLine($"vnp_ResponseCode: {callback.vnp_ResponseCode}");
+            // Verify VNPay signature first
+            var hashSecret = _configuration["VNPaySettings:HashSecret"]!;
+            if (!_vnpayService.ValidateSignature(HttpContext.Request.Query, hashSecret))
+            {
+                return BadRequest(new { success = false, message = "Invalid signature" });
+            }
             
             // If VNPAY says fail, return immediately
             if (callback.vnp_ResponseCode != "00")
@@ -183,8 +122,6 @@ namespace QL_NhaTro_Server.Controllers
                 
                 if (booking == null)
                 {
-                    Console.WriteLine($"Booking not found: {bookingId}");
-                    // Return success anyway since VNPAY confirmed payment
                     return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán thành công!", TransactionId = "", ContractId = "" });
                 }
 
@@ -194,15 +131,12 @@ namespace QL_NhaTro_Server.Controllers
                     return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán đã được xử lý.", TransactionId = "", ContractId = "" });
                 }
 
-                // Load room - this should not be null since booking references it
+                // Load room
                 var room = await _db.Rooms.FindAsync(booking.RoomId);
                 if (room == null)
                 {
-                    Console.WriteLine($"ERROR: Room not found for booking: {booking.RoomId}");
                     return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán thành công! (Lỗi tải phòng)", TransactionId = "", ContractId = "" });
                 }
-
-                Console.WriteLine($"Room found: {room.Name}, Price: {room.Price}");
                 
                 // Update booking
                 booking.Status = BookingStatus.Approved;
@@ -224,14 +158,13 @@ namespace QL_NhaTro_Server.Controllers
                     BookingId = booking.Id,
                     StartDate = booking.CheckInDate,
                     EndDate = booking.CheckInDate.AddYears(1),
-                    MonthlyPrice = room.Price,  // Use room price directly
+                    MonthlyPrice = room.Price,
                     DepositAmount = booking.DepositAmount,
                     Status = ContractStatus.Draft,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
                 
-                Console.WriteLine($"Creating contract: MonthlyPrice={contract.MonthlyPrice}, DepositAmount={contract.DepositAmount}");
                 _db.Contracts.Add(contract);
 
                 // Create payment record
@@ -253,13 +186,11 @@ namespace QL_NhaTro_Server.Controllers
                 _db.Payments.Add(payment);
 
                 await _db.SaveChangesAsync();
-                Console.WriteLine($"=== PAYMENT PROCESSED SUCCESSFULLY ===");
 
                 // Send notifications
                 var user = await _db.Users.FindAsync(booking.UserId);
                 if (user != null)
                 {
-                    // Notify user about successful deposit payment
                     await _notificationService.SendDepositPaidNotificationAsync(
                         booking.UserId, 
                         user.FullName, 
@@ -267,7 +198,6 @@ namespace QL_NhaTro_Server.Controllers
                         booking.DepositAmount
                     );
 
-                    // Notify admin about payment received
                     await _notificationService.SendPaymentReceivedNotificationAsync(
                         user.FullName,
                         room.Name,
@@ -284,10 +214,8 @@ namespace QL_NhaTro_Server.Controllers
                     ContractId = contract.Id
                 });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine($"Error processing: {ex.Message}");
-                // Still return success since VNPAY confirmed payment
                 return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán thành công!", TransactionId = "", ContractId = "" });
             }
         }
@@ -321,18 +249,14 @@ namespace QL_NhaTro_Server.Controllers
         // Process bill (monthly) payment
         private async Task<IActionResult> ProcessBillPayment(VNPayCallbackDto callback)
         {
-            Console.WriteLine("=== PROCESSING BILL PAYMENT ===");
-            
             // Parse bill ID from txnRef (format: BILL_{billId}_{timestamp})
             var parts = callback.vnp_TxnRef.Split('_');
             if (parts.Length < 2)
             {
-                Console.WriteLine("Invalid BILL txnRef format");
                 return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán thành công!", TransactionId = callback.vnp_TransactionNo, ContractId = "" });
             }
             
             var billId = parts[1];
-            Console.WriteLine($"Bill ID: {billId}");
             
             var bill = await _db.Bills
                 .Include(b => b.Room)
@@ -341,14 +265,12 @@ namespace QL_NhaTro_Server.Controllers
                 
             if (bill == null)
             {
-                Console.WriteLine($"Bill not found: {billId}");
                 return Ok(new PaymentResultDto { Success = true, Message = "Thanh toán thành công!", TransactionId = callback.vnp_TransactionNo, ContractId = "" });
             }
             
             // Check if already paid
             if (bill.Status == BillStatus.Paid)
             {
-                Console.WriteLine("Bill already paid");
                 return Ok(new PaymentResultDto { Success = true, Message = "Hóa đơn đã được thanh toán.", TransactionId = callback.vnp_TransactionNo, ContractId = "" });
             }
             
@@ -376,7 +298,6 @@ namespace QL_NhaTro_Server.Controllers
             _db.Payments.Add(payment);
             
             await _db.SaveChangesAsync();
-            Console.WriteLine("=== BILL PAYMENT PROCESSED SUCCESSFULLY ===");
             
             // Send notifications
             if (bill.User != null && bill.Room != null)
@@ -391,9 +312,9 @@ namespace QL_NhaTro_Server.Controllers
                         "/user/bills"
                     );
                 }
-                catch (Exception ex)
+                catch
                 {
-                    Console.WriteLine($"Error sending notification: {ex.Message}");
+                    // Ignore notification errors
                 }
             }
             
@@ -405,17 +326,5 @@ namespace QL_NhaTro_Server.Controllers
                 ContractId = ""
             });
         }
-
-        #region Helper Methods
-
-        private bool VerifyVNPaySignature(VNPayCallbackDto callback)
-        {
-            // TODO: Implement real signature verification using VNPayService
-            // For now, return true to allow testing
-            return true;
-        }
-
-        #endregion
     }
 }
-

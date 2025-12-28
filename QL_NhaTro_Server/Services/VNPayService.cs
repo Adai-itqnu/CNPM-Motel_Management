@@ -10,12 +10,6 @@ namespace QL_NhaTro_Server.Services
     {
         public string CreatePaymentUrl(string orderId, decimal amount, string orderInfo, string returnUrl, string tmnCode, string hashSecret)
         {
-            Console.WriteLine("\n=== VNPAY CREATE PAYMENT URL ===");
-            Console.WriteLine($"OrderId: {orderId}");
-            Console.WriteLine($"Amount: {amount}");
-            Console.WriteLine($"TmnCode: {tmnCode}");
-            Console.WriteLine($"HashSecret: {hashSecret}");
-            
             var vnpay = new VNPayLibrary();
             
             vnpay.AddRequestData("vnp_Version", "2.1.0");
@@ -34,13 +28,8 @@ namespace QL_NhaTro_Server.Services
             var baseUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
             var paymentUrl = vnpay.CreateRequestUrl(baseUrl, hashSecret);
             
-            Console.WriteLine($"\nGenerated Payment URL:");
-            Console.WriteLine(paymentUrl);
-            Console.WriteLine("=== END VNPAY ===");
-            
             return paymentUrl;
         }
-
 
         public bool ValidateSignature(IQueryCollection queryParams, string hashSecret)
         {
@@ -96,14 +85,11 @@ namespace QL_NhaTro_Server.Services
             {
                 if (!string.IsNullOrEmpty(kv.Value))
                 {
-                    // VNPAY requires hash to be computed on the SAME string as URL
-                    // So we use URL-encoded value for BOTH
                     var encodedValue = WebUtility.UrlEncode(kv.Value);
                     dataForUrl.Append(kv.Key + "=" + encodedValue + "&");
                     dataForHash.Append(kv.Key + "=" + encodedValue + "&");
                 }
             }
-
 
             var queryString = dataForUrl.ToString();
             var hashData_string = dataForHash.ToString();
@@ -117,22 +103,13 @@ namespace QL_NhaTro_Server.Services
             {
                 hashData_string = hashData_string.Remove(hashData_string.Length - 1);
             }
-
-            Console.WriteLine($"\nHash Data String (for signature):");
-            Console.WriteLine(hashData_string);
             
             var hashData = HmacSHA512(vnp_HashSecret, hashData_string);
             
-            Console.WriteLine($"\nGenerated Signature:");
-            Console.WriteLine(hashData);
-            
-            // VNPAY requires vnp_SecureHashType before vnp_SecureHash
             var paymentUrl = baseUrl + "?" + queryString + "&vnp_SecureHashType=SHA512&vnp_SecureHash=" + hashData;
 
             return paymentUrl;
         }
-
-
 
         public bool ValidateSignature(string inputHash, string secretKey)
         {
