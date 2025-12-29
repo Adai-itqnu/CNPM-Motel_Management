@@ -13,20 +13,24 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class UserProfileComponent implements OnInit {
 
+  // UI states
   isEditing = false;
-  currentUser: any;
-
-  form = {
-    fullName: '',
-    email: '',
-    phone: '',
-    idCard: '',
-    address: ''
-  };
-
-  avatarFile: File | null = null;
+  loading = false;
   message = '';
   messageType: 'success' | 'error' = 'success';
+
+  // Current user from auth
+  currentUser: any;
+
+  // Form fields (like login/register)
+  fullName = '';
+  email = '';
+  phone = '';
+  idCard = '';
+  address = '';
+
+  // Avatar
+  avatarFile: File | null = null;
 
   constructor(
     private userService: UserService,
@@ -41,13 +45,12 @@ export class UserProfileComponent implements OnInit {
     this.currentUser = this.authService.getUser();
     if (!this.currentUser) return;
 
-    this.form = {
-      fullName: this.currentUser.fullName || '',
-      email: this.currentUser.email || '',
-      phone: this.currentUser.phone || '',
-      idCard: this.currentUser.idCard || '',
-      address: this.currentUser.address || ''
-    };
+    // Load data vào các biến riêng lẻ (giống login/register)
+    this.fullName = this.currentUser.fullName || '';
+    this.email = this.currentUser.email || '';
+    this.phone = this.currentUser.phone || '';
+    this.idCard = this.currentUser.idCard || '';
+    this.address = this.currentUser.address || '';
   }
 
   toggleEdit() {
@@ -62,16 +65,17 @@ export class UserProfileComponent implements OnInit {
   }
 
   save() {
-    // Validate từng field cụ thể
-    if (!this.form.phone?.trim()) {
+    // Validation (giống login/register)
+    if (!this.phone?.trim()) {
       this.show('❌ Vui lòng nhập số điện thoại', 'error');
       return;
     }
-    if (!this.form.idCard?.trim()) {
+    if (!this.idCard?.trim()) {
       this.show('❌ Vui lòng nhập CCCD/CMND', 'error');
       return;
     }
 
+    this.loading = true;  // Bật loading
     this.isEditing = false;
 
     if (this.avatarFile) {
@@ -95,19 +99,35 @@ export class UserProfileComponent implements OnInit {
         this.avatarFile = null;
         this.saveProfile();
       },
-      error: () => this.show('❌ Upload ảnh thất bại', 'error')
+      error: () => {
+        this.loading = false;  // Tắt loading khi lỗi
+        this.show('❌ Upload ảnh thất bại', 'error');
+      }
     });
   }
 
   saveProfile() {
-    const updatedUser = { ...this.currentUser, ...this.form };
+    // Tạo object để gửi lên server (giống login/register style)
+    const profileData = {
+      fullName: this.fullName,
+      email: this.email,
+      phone: this.phone,
+      idCard: this.idCard,
+      address: this.address
+    };
+
+    const updatedUser = { ...this.currentUser, ...profileData };
 
     this.authService.updateUser(updatedUser);
     this.currentUser = updatedUser;
 
-    this.userService.updateMyProfile(this.form).subscribe({
-      next: () => this.show('✅ Lưu thành công', 'success'),
+    this.userService.updateMyProfile(profileData).subscribe({
+      next: () => {
+        this.loading = false;  // Tắt loading
+        this.show('✅ Lưu thành công', 'success');
+      },
       error: () => {
+        this.loading = false;  // Tắt loading khi lỗi
         this.loadUser(); // Khôi phục data cũ khi lỗi
         this.show('❌ Lỗi khi lưu', 'error');
       }

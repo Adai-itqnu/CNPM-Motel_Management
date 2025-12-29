@@ -4,25 +4,27 @@
 
   <!-- Register Card -->
   <div class="register-card">
-    
+
     <!-- Left Side - Branding -->
     <div class="branding-section">
       <div class="branding-content">
         <div class="header-section">
           <div class="logo-badge">
             <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+              </path>
             </svg>
             <span class="logo-text">MotelManager</span>
           </div>
-          
+
           <div class="branding-text">
             <h2 class="title">Đăng ký để tìm phòng trọ và vào ở ngay.</h2>
             <p class="description">
-             Hàng trăm phòng trọ trống, thông tin rõ ràng, xem là có thể dọn vào ở.
+              Hàng trăm phòng trọ trống, thông tin rõ ràng, xem là có thể dọn vào ở.
           </div>
         </div>
-        
+
         <div class="social-proof">
           <div class="avatars">
             <img src="https://i.pravatar.cc/150?img=1" alt="User 1" class="avatar">
@@ -53,87 +55,55 @@
 
         <!-- Form -->
         <form (ngSubmit)="onRegister()" class="register-form">
-          
+
           <!-- Full Name -->
           <div class="form-group">
             <label>Họ tên đầy đủ <span class="required">*</span></label>
-            <input 
-              type="text" 
-              [(ngModel)]="fullName" 
-              name="fullName"
-              placeholder="Nguyễn Văn A"
-              required
-            />
+            <input type="text" [(ngModel)]="fullName" name="fullName" placeholder="Nguyễn Văn A" required />
           </div>
 
           <!-- Email -->
           <div class="form-group">
             <label>Email <span class="required">*</span></label>
-            <input 
-              type="email" 
-              [(ngModel)]="email" 
-              name="email"
-              placeholder="email@example.com"
-              required
-            />
+            <input type="email" [(ngModel)]="email" name="email" placeholder="email@example.com" required />
           </div>
 
           <!-- Phone & ID Card (2 columns) -->
           <div class="form-row">
             <div class="form-group">
               <label>Số điện thoại <span class="required">*</span></label>
-              <input 
-                type="tel" 
-                [(ngModel)]="phone" 
-                name="phone"
-                placeholder="0912..."
-                required
-              />
+              <input type="tel" [(ngModel)]="phone" name="phone" placeholder="0912..." required />
             </div>
             <div class="form-group">
               <label>CCCD/CMND</label>
-              <input 
-                type="text" 
-                [(ngModel)]="idCard" 
-                name="idCard"
-                placeholder="Số thẻ"
-              />
+              <input type="text" [(ngModel)]="idCard" name="idCard" placeholder="Số thẻ" />
             </div>
           </div>
 
           <!-- Username -->
           <div class="form-group">
             <label>Tên đăng nhập <span class="required">*</span></label>
-            <input 
-              type="text" 
-              [(ngModel)]="username" 
-              name="username"
-              placeholder="username123"
-              required
-            />
+            <input type="text" [(ngModel)]="username" name="username" placeholder="username123" required />
           </div>
 
           <!-- Password -->
           <div class="form-group">
             <label>Mật khẩu <span class="required">*</span></label>
             <div class="input-wrapper">
-              <input 
-                [type]="showPassword ? 'text' : 'password'"
-                [(ngModel)]="password" 
-                name="password"
-                placeholder="••••••••"
-                required
-              />
-              <button 
-                type="button" 
-                class="password-toggle"
-                (click)="togglePassword()">
+              <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password"
+                placeholder="••••••••" required />
+              <button type="button" class="password-toggle" (click)="togglePassword()">
                 <svg *ngIf="!showPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                  </path>
                 </svg>
                 <svg *ngIf="showPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                  </path>
                 </svg>
               </button>
             </div>
@@ -144,23 +114,20 @@
           <div class="form-group">
             <label>Xác nhận mật khẩu <span class="required">*</span></label>
             <div class="input-wrapper">
-              <input 
-                [type]="showConfirmPassword ? 'text' : 'password'"
-                [(ngModel)]="confirmPassword" 
-                name="confirmPassword"
-                placeholder="••••••••"
-                required
-              />
-              <button 
-                type="button" 
-                class="password-toggle"
-                (click)="toggleConfirmPassword()">
+              <input [type]="showConfirmPassword ? 'text' : 'password'" [(ngModel)]="confirmPassword"
+                name="confirmPassword" placeholder="••••••••" required />
+              <button type="button" class="password-toggle" (click)="toggleConfirmPassword()">
                 <svg *ngIf="!showConfirmPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                  </path>
                 </svg>
                 <svg *ngIf="showConfirmPassword" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21">
+                  </path>
                 </svg>
               </button>
             </div>
@@ -176,9 +143,9 @@
           </label>
 
           <!-- Error/Success Message -->
-          <div *ngIf="message" class="message-box" 
-               [class.error]="message.includes('thất bại') || message.includes('không')"
-               [class.success]="message.includes('thành công')">
+          <div *ngIf="message" class="message-box"
+            [class.error]="message.includes('thất bại') || message.includes('không')"
+            [class.success]="message.includes('thành công')">
             {{ message }}
           </div>
 
@@ -190,7 +157,7 @@
           <!-- Login Link -->
           <div class="login-link">
             <p>
-              Đã có tài khoản? 
+              Đã có tài khoản?
               <a routerLink="/login">Đăng nhập</a>
             </p>
           </div>

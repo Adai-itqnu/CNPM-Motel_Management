@@ -9,10 +9,9 @@ interface LoginResponse {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
-
   private userSubject = new BehaviorSubject<User | null>(null);
   user$ = this.userSubject.asObservable();
 
@@ -21,9 +20,7 @@ export class AuthService {
   }
 
   login(usernameOrEmail: string, password: string): Observable<LoginResponse> {
-    return this.http.login(usernameOrEmail, password).pipe(
-      tap(res => this.setSession(res))
-    );
+    return this.http.login(usernameOrEmail, password).pipe(tap((res) => this.setSession(res)));
   }
 
   register(
@@ -64,7 +61,6 @@ export class AuthService {
     const role = this.getUser()?.role?.toLowerCase();
     return role === 'user';
   }
-
 
   // Deprecated: Use isUser() instead
   isTenant(): boolean {
