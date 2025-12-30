@@ -21,7 +21,6 @@ export class RegisterComponent {
   username = '';
   password = '';
   confirmPassword = '';
-  agreeTerms = false;
 
   // UI states
   message = '';
@@ -58,11 +57,6 @@ export class RegisterComponent {
 
     if (this.password.length < 6) {
       this.message = 'Mật khẩu phải có ít nhất 6 ký tự';
-      return;
-    }
-
-    if (!this.agreeTerms) {
-      this.message = 'Vui lòng đồng ý với điều khoản sử dụng';
       return;
     }
 

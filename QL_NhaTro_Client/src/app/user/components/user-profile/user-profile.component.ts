@@ -116,19 +116,20 @@ export class UserProfileComponent implements OnInit {
       address: this.address
     };
 
-    const updatedUser = { ...this.currentUser, ...profileData };
-
-    this.authService.updateUser(updatedUser);
-    this.currentUser = updatedUser;
-
+    // BƯỚC 1: Gọi API update DB
     this.userService.updateMyProfile(profileData).subscribe({
       next: () => {
+        // BƯỚC 2: BE trả success
+        // BƯỚC 3 & 4: FE update RAM (BehaviorSubject) và localStorage
+        const updatedUser = { ...this.currentUser, ...profileData };
+        this.authService.updateUser(updatedUser);
+        this.currentUser = updatedUser;
+
         this.loading = false;  // Tắt loading
         this.show('✅ Lưu thành công', 'success');
       },
       error: () => {
         this.loading = false;  // Tắt loading khi lỗi
-        this.loadUser(); // Khôi phục data cũ khi lỗi
         this.show('❌ Lỗi khi lưu', 'error');
       }
     });
